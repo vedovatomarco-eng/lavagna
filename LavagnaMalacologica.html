@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!--
+ ============================================================================
+ FILE:       LavagnaMalacologica.html
+ PROGETTO:   Lavagna EDU · Marine Inception   (pagina web statica su GitHub Pages: NIENTE Apps Script,
+             quindi nessun avviso di Google "applicazione creata da un utente…")
+ COSA FA:    La lavagna di Marine Inception da sola, per la pagina EDU del sito: chiunque la può usare.
+             Nessun collegamento al Database, al Drive o al foglio di Marco: le immagini si prendono solo
+             dal computer di chi la usa e restano nel suo browser. Niente viene salvato da nessuna parte;
+             il PDF si scarica sul computer di chi la usa.
+             Stessi strumenti della lavagna della LIM (60_LIM_Lavagna del 25/11/2026): penna, testo, linee,
+             cerchio, Sposta, assi, griglia polare, quadretti, Sezione Nautilus, modello di Raup, spirale
+             logaritmica, Fibonacci, calibro, goniometro, zoom, mano, PDF A4.
+             ⛶: schermo intero; se il riquadro di Google Sites non lo permette, apre la lavagna in una scheda nuova.
+ DIPENDE DA: niente. Librerie dalla rete: jsPDF (cdnjs), Three.js 0.160 (jsdelivr).
+ AGGIORNARE: quando cambia la lavagna della LIM (60), si rifà questa copia senza la parte del server,
+             senza google.script.run e senza tag <?= ?>; poi si carica il nuovo LavagnaMalacologica.html su GitHub.
+ ============================================================================
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marine Inception · Lavagna</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Pinyon+Script&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* (23/11/2026) cursori neri bordati di bianco: si vedono sia sulla cornice blu sia sul foglio bianco */
+  :root { --freccia: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADIElEQVR4AcyWUUhTYRiGP1sSYxdGIBRIEAiRuwyigYsKBOdFDjIv7MIIL2wKJhRCN3oThFCBZIjShVZqF4HFblIoZJGNbkKDaoGDEMcKtjYYbAu33vewxfw37ZyzrRrfe77v+8/2v885+/+z7ZF//Pq/ALLZ7D3oJXTgb90Y9Q64YXwG8gHiEHLVQwWw5BybkN8C4ghyVUMFyEQiEfF6vTQ9jMMbQNiRqxYqQE0qlZLu7m6Zm5uj6UEcXgPiOHJVQgXQTGAofX19MjU1xX4/DssYcyJXPFSAGrx+mwwNDcnIyAh7Gw5LgHAhVzRUgKLJx8bGxOPxSCaT2YeTzwFxEbli8UcAOs3Pz0tXV5dgfexF/xAQV5ArEroA6LS4uChut1sSiUQN+vuAuIFcdugGoJPf75e2tjbhVkV/ExB3kcsKQwB0Wltbk5aWFtnY2GB7FRAPIN4V9oZlGIAOwWBQg1hfX2d7GYcngOD6QGksTAHQIhwOaxCrq6tsL+DAHcKdglJ/mAagRTQa1daEz+djy2cEnxV8ZrDXJRVgC/t9xw9arVYJBALaIuRCpLgWnE5n/jMsnuYbPVkFKPpMa2urTE5Ois1mk2QyKel0Ov+e9yiWS+gFxnTHrgA9PT0yOzsrHR0d2g8UFppMTEzkJ/fisX26hAxtzR0BhoeHZXR0VGAahePP3t5esVgsMjMzw4cRhsSDc1YW5agIoLa2VrvKgYEBmm/iCh0weNzQ0CDt7e0Sj8dlenoaQ8K/bZdYlCMVwFJfXy+dnZ2cM0hz6DOaW5AMDg4yyfj4OH+cWF/HXTD9EOIEKsAWB6EP0EmYf0UWZEIs2e12cTgcEgqFZGFhgaf4l+0cC7NSAfyY6B10CqbfkAvjDpv+/n4m7S5ohci1XDaVtgHA9Dx0AuLCUyfk9vrocrmksbFRuCZisRjf04yvoYmFGW0D2G0CQGVx/jYkKysr2kKsq6vjQv2CsR+QqdANkJv9Ea72O7cj+leQG2BHoU3UpsIQAIxSUDOcjiGfhZ5BvDMYMheGAGgBwwD0iXUlZBigEqaFc1QdoNCsVP0LAAD//5LIiAIAAAAGSURBVAMA3fAZUCfzgRYAAAAASUVORK5CYII=") 4 3, default; --mirino: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABuklEQVR4AeyWvU4CURCF7y64CRgKsCFBO0hsfAEa/CkJjcT4kGiIWXptCC9g4g8xNBixARoRGtZvbkCJuu7exYZkyT3LMDtzzmQuu3NttcbH87yCYA0KFbkAhBsI9wULG9N8RSoAwTxS9Wq1qmq1Gqaq49sRwxSRCkBkH1idTke1221MZXE5AMYragHGQn4JcQFxB+IObGwHHniuvXK5rCqVCqbyuNwD4/XZAV6lMlgO+Q5CwbKsF5TcVqulms0mprrCNyA3NIckCXQBJC4HyzXOIPSJvwAno9FoMh6P3+bz+TG/TTkkXtkk6sEiQyWXy6kgSBxFnk6nU6dUKqWLxeL2bDZL4dPDKShf7i849ACTDsggIT/cSiaTPwJpv/bZttBp88/LCseWTbLs56Xrumo4HAZiseeNRCLx1O12J71e7x3hRxSNOdAe6JIxziDYBUchkCf+3HGc22w2m85kMinsO3zGHGh9nYggeAY3IfC6/N98P5CQG5pDxAW6A2IYIj6QGDbMPzzqFvgzGt6JC4g7sLEd+P8DicnTwytXD7CVA0kD38CEYxkbeQsQlOGzB5EeTnz/uoKcHwAAAP//vvl2AgAAAAZJREFUAwA45jB932AsQAAAAABJRU5ErkJggg==") 16 16, crosshair; }
+  html, body { cursor: var(--freccia); }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1726; color: #e5e7eb; font-family: 'EB Garamond', Georgia, serif; user-select: none; -webkit-user-select: none; }
+  button { font-family: inherit; cursor: var(--freccia); }
+  #alto { position: absolute; left: 0; top: 0; right: 0; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid rgba(226,194,122,.35); }
+  #alto .sx, #alto .dx { display: flex; align-items: center; gap: 12px; width: 340px; white-space: nowrap; }
+  #alto .dx { justify-content: flex-end; }
+  .titolo { color: #ecd291; font: 700 19px 'Playfair Display', Georgia, serif; }
+  .titolo span { color: #9fb3c9; font: italic 400 16px 'EB Garamond', Georgia, serif; }
+  .pill { white-space: nowrap; background: transparent; border: 1px solid rgba(226,194,122,.55); color: #c9d6e6; font-size: 15px; padding: 6px 12px; border-radius: 999px; }
+  .pill:hover { background: rgba(226,194,122,.12); }
+  #comandi { display: flex; align-items: center; gap: 2px; background: #12243a; border: 1px solid rgba(226,194,122,.45); border-radius: 14px; padding: 4px 8px; }
+  .cmd { width: 74px; height: 50px; background: transparent; border: 0; border-radius: 10px; color: #e8dcc0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; }
+  .cmd:hover { background: rgba(226,194,122,.12); }
+  .cmd.on { background: rgba(226,194,122,.2); color: #ecd291; }
+  .cmd.rosso { background: #7a1f1f; color: #fff; }
+  .sep { width: 1px; height: 34px; background: rgba(226,194,122,.35); margin: 0 4px; }
+  .colore { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #c9d6e6; }
+  .colore.on { border-color: #0b1726; box-shadow: 0 0 0 3px #e2c27a; }
+  .colonna { position: absolute; top: 64px; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding-top: 10px; overflow: auto; }
+  #sx { left: 0; width: 116px; border-right: 1px solid rgba(226,194,122,.25); }
+  #dx { right: 0; width: 128px; border-left: 1px solid rgba(226,194,122,.25); }
+  .str { width: 96px; min-height: 76px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: #e8dcc0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 14px; padding: 4px; }
+  .str:hover { background: rgba(226,194,122,.10); }
+  .str.on { border-color: #e2c27a; background: rgba(226,194,122,.18); color: #ecd291; font-weight: 600; }
+  .str.acceso { border: 1px dashed rgba(226,194,122,.8); }
+  .str.presto { opacity: .38; cursor: var(--freccia); }
+  .str.presto:hover { background: transparent; }
+  #dx .str { width: 108px; }
+  .etich { color: #9fb3c9; font: italic 13px 'EB Garamond', Georgia, serif; letter-spacing: .12em; margin: 2px 0 4px; }
+  #area { position: absolute; left: 116px; right: 128px; top: 64px; bottom: 0; overflow: hidden; background: #26384d; touch-action: none; }
+  #area > canvas { position: absolute; left: 0; top: 0; }
+  #sopra { cursor: var(--mirino); }                         /* (23/11/2026) di riserva sempre un cursore visibile */
+  #sopra.disegno { cursor: none; }                      /* solo con gli strumenti che disegnano il proprio pallino */
+  #sopra.mano { cursor: grab; }
+  #sopra.sel { cursor: var(--freccia); }
+  #sopra.neutro { cursor: var(--freccia); }
+  #sopra.raup { cursor: var(--freccia); }
+  #sopra.raup.posa { cursor: var(--mirino); }
+  #sopra.raup.ruota { cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAHoklEQVR4AexXeVDV1xX+HuuDiqi0M1prTRQlI5khHQlLKyLaOsSOGFGxEYQRcBmrM1Wbak0cUHFfcMHqwFgIEWRClDaRItoGtSoEbMVOsa5kOqOlTa0LizweCP2++3gIFRv/yeSfvLnfPcs995zzu/tzwVf8+zoBMwJdXV2exDQijUjvhY3kPyC2EV5fxmyZBOg4u6WlpbSysjL94sWLab3w7tatW+fU1dX9gjZ/IV64MOFwop64RIQ+r6MzgZh58+Zhzpw5iIuL64OsrCzMmDFD/f3pyFPMF4F2Ftp8mJub+3JGRsZ4u91+hroJ1D1TnAncUPDw8HCEhYVh/Pjx8PR8GsvHx0cdO1m5Ey9Swtra2r69YcMGHDp0CIsXL7Z2dHSU95eEM4GMhISEmuLiYghWqxU2mw3sYIKtWLFCtNBisTSLEdgWTRwh8oho6Xrhz/yA+nXr1hnV6dOnsWjRIm8mcYK23zLK7sokQMcfEyHUvaeML1y4QBagDm5ubs4p2Af+6CCKONPc3FyWk5MTn5OTkyReOmISTdSvjfQnycnJLWvWrCELnDp1CtnZ2b4UdhM9xSQgiZ39Hz58mLh9+3aJ8PPzM3Tq1Knw9fX9jIIfbaoY7JPMzMzI4OBgrF+/3kC8dGyrkA0RzeRr2GfKsmXLmqOjHQO0b98+MEYC219hmyk9CVB6Nz8/39Le3g5XV1c0NTVRBbMwyVjovGzv3r2hCrZr1y5Qho+3h4F46dQmG8plDPJHAF3EGi5EeHl5mT5HjhyhCktUCSYBGmuPJ5SUlEiH2NhYDBo0CMOHD8fkyZNx+PDhl+R8x44dxokCp84OQknWLAPx0jEwZCNb7gCt+t/R4YdDhw6t5RojCxw/flw0iTHNKjcJUBPOoXG9efMmWSApKQnnzp1DWVkZuIWQlpZmAqsxOHAoCnbEIGXWa/iGl4eBeOnUJhslogV4//59zeNL1B2Oj48nAW7cuIF79+4NovB9As4EJlVVVUk2QxUUFARuvdghQ4bMd06FaWR1qe6fiH/7I+SWXEFLq91AvHRqo0lP4aoXr9Et9vf3B/1JNkmQeZXoSWDU9evXJUNnARfQXULzcYdDZfSqIsd5gNOOpsd2ZH9Qix8mFxqIl87THXh1pKtM+4C+/kXFv0ePHk0C3L59W7RPAl6PHz+WEgMGDBD9XNX/IibEE9uTBmIGqRIBdOBZoMBhAW5Y8CMrQknR/++zESNGmJb6+nrR76hyUUUMaG1tJQF0CJFxCGR6jwBFeHm4IOZ1L2x4ywdWfrGHG5AQ5YnQV9yZiMUse9n1A6vWk/Tu7uwItIh3JvBw4MCBksHFKOqnSuDwiTwDfbutHbB3ABYJcPx6sQ7F09pXi1Ni9yg3incmUDd27FjJ4M0nGsAv9yBj45FK4ijvFDTh40s2tNo7HYpedVt7F6qvt+P9T3QIOhq6R9NGX/q67zrX2ahRo2RgFp0zgb+OGTNGSty9exfdc/RjKq7wPGjetGkTNEL64t98asPP8xpxsvZpoD/deoJfn7Kh8lqHGRHZbtmyRX0e0Uct8eatW7csDQ0NZIEJE3RE4KwEZwK/DwgIaBs2bJh0yMvLE021WCxaC6E8F85XV1dj1apVcgolcvqKXTYGl28/DSwb2c6fP/88G8MIZbqioKCALKCv50fZKFwiHNuQgRpdXFyKFi5cKB0KCwtx584dvZBmsu0qEcF5e4O34qdyriD6SmPMSrx0apONbNWHuMbmxQ8ePHgtPz+fLDB37lzR99hm5tE5AlL+KjEx0Ry/uoqXL18uXSHn73Ux7HCSCJNzBjEjwosGsusOfF5tsiFOqg/7fq+zs3Ov7Pg+MMd7SkrKE7ZtIUzpSYCdqrloju3fv9801NTUYNu2bVYKf6Ajc2ySB+2UiEZkGq/aktWrVx9n4GnURxAmsOzYZyJp6ebNmz3OnjXTjQMHDmib59Lu72wzpScBIwGLQkJCPuc9bkQls2fPHh8KSuKnpD2FTsqIWGIWUeZsYGArkUn5DD9gmN4X5M19EhkZ+Q/yq4me0icBOrrPliRePk9iYmLIAjt37sSSJUusvECy6LiKeIf4AaFtamycFXXB5GsbGhp+xqG26AMog4sYXF+acyWrGFIb9ElAGiZxku+BWD5G22fPni0VTpw4gYkTJ+rxEXr58uUMKrXCmxiwsht6/TbyNq3hLRig+6S8vJxmQHp6OrSNKaTQt+PGo+AszySgBhp+xF0Rk5mZad+9ezcGDx6MxsZG8PmF6dOnIzAwENxmHhziMDoP4wi9PGXKFJ+oqCjwHQDdguPGjcOxY8eQmpqqbfgmfZq9Lf+90W8CMmAHLbaguLi4cr0R165di5EjR6oJjx49QkVFBTTEBw8eNCOkU86N78eIiAij1wiEhob+jR0m09dvSfstz01A1ux4jYjmPp+0dOnSfCbSUlpaCgXduHEjVq5cCSXGkUJRURGuXr2Ko0ePYubMmVXsF0cfgaQXSZ9b/m8Czl50cpZIovxNPlbe4DS8vWDBglwmUMHEyvmf4n0er1u9vb3fkg1tw4liQm9Cqp5fXigBZ3c6tBGamp2kyYSGVy/gRPK/JIqI/zjtRb8I/wUAAP//GS+BkAAAAAZJREFUAwBWWXJujGp5BAAAAABJRU5ErkJggg==") 16 16, url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%224.5%22%3E%3Cpath%20d%3D%22M24.03%206.42A12.5%2012.5%200%201%201%208.83%205.76%22/%3E%3Cpath%20d%3D%22M3.22%205.76L8.83%205.76L6.91%2011.04%22/%3E%3Cpath%20d%3D%22M16%209.5L22%2012.5L16%2015.5L10%2012.5ZM10%2012.5V18.5L16%2021.5V15.5M22%2012.5V18.5L16%2021.5%22/%3E%3C/g%3E%3Cpath%20d%3D%22M16%209.5L22%2012.5L16%2015.5L10%2012.5Z%22%20fill%3D%22%23e2c27a%22/%3E%3Cpath%20d%3D%22M10%2012.5V18.5L16%2021.5V15.5Z%22%20fill%3D%22%23b8862b%22/%3E%3Cpath%20d%3D%22M22%2012.5V18.5L16%2021.5V15.5Z%22%20fill%3D%22%238a6a24%22/%3E%3Cg%20stroke%3D%22%231b1b1b%22%20stroke-width%3D%221.8%22%3E%3Cpath%20d%3D%22M24.03%206.42A12.5%2012.5%200%201%201%208.83%205.76%22/%3E%3Cpath%20d%3D%22M3.22%205.76L8.83%205.76L6.91%2011.04%22/%3E%3Cpath%20d%3D%22M16%209.5L22%2012.5L16%2015.5L10%2012.5ZM10%2012.5V18.5L16%2021.5V15.5M22%2012.5V18.5L16%2021.5%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 16 16, move; }
+  #sopra.testo { cursor: var(--mirino); }
+  #nav { position: absolute; right: 14px; bottom: 14px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #12243a; border: 1px solid rgba(226,194,122,.55); border-radius: 14px; padding: 6px; width: 64px; z-index: 3; }
+  #nav button { width: 50px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: #c9d6e6; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  #nav button:hover { background: rgba(226,194,122,.12); }
+  #nav button.on { background: rgba(226,194,122,.25); }
+  #pagina { position: absolute; left: 14px; bottom: 14px; padding: 6px 14px; border-radius: 999px; background: #12243a; border: 1px solid rgba(226,194,122,.55); color: #c9d6e6; font: italic 15px 'EB Garamond', Georgia, serif; z-index: 3; pointer-events: none; }
+  #avviso { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); padding: 8px 18px; border-radius: 999px; background: #12243a; border: 1px solid #e2c27a; color: #ecd291; font: 16px 'EB Garamond', Georgia, serif; z-index: 4; display: none; }
+  svg { display: block; }
+  .pannello { position: absolute; right: 92px; top: 14px; width: 300px; z-index: 4; background: #12243a; border: 1px solid rgba(226,194,122,.6); border-radius: 14px; padding: 14px 16px; display: none; flex-direction: column; gap: 9px; color: #e5e7eb; }
+  .pannello h3 { color: #ecd291; font: 700 19px 'Playfair Display', Georgia, serif; }
+  .pannello .formula { color: #c9d6e6; font: italic 17px 'EB Garamond', Georgia, serif; }
+  .pannello label { color: #c9d6e6; font-size: 15px; }
+  .riga { display: flex; align-items: center; gap: 10px; }
+  .riga input[type=range] { flex: 1; accent-color: #e2c27a; height: 28px; }
+  .val { color: #ecd291; font-weight: 600; font-size: 18px; min-width: 62px; text-align: right; }
+  .tab2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 10px; font-size: 15px; }
+  .tab2 .k { color: #9fb3c9; }
+  .filo { height: 1px; background: rgba(226,194,122,.3); }
+  .bott { height: 38px; border-radius: 10px; border: 1px solid rgba(226,194,122,.6); background: transparent; color: #ecd291; font-size: 15px; padding: 0 10px; }
+  .bott:hover { background: rgba(226,194,122,.12); }
+  .bott.on { background: rgba(226,194,122,.25); }
+  .bott.pieno { background: #c9a14a; color: #0b1726; border-color: #e2c27a; font-weight: 600; }
+  #tBox { position: absolute; z-index: 5; display: none; flex-direction: column; gap: 4px; }
+  #tBarra { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: rgba(253,253,251,.97); border: 1px solid #c9a14a; color: #5b4a22; font: 14px Arial, sans-serif; align-self: flex-start; white-space: nowrap; }
+  #tBarra select { height: 32px; font: 14px Arial, sans-serif; border: 1px solid #c9a14a; border-radius: 6px; background: #fff; color: #333; }
+  #tBarra button { min-width: 34px; height: 32px; border-radius: 6px; border: 1px solid #c9a14a; background: transparent; color: #5b4a22; font: 15px Arial, sans-serif; }
+  #tBarra button.on { background: rgba(201,161,74,.3); }
+  #tArea { font-family: Arial, Helvetica, sans-serif; background: rgba(255,255,255,.6); border: 1.5px dashed #b8862b; outline: none; resize: none; overflow: hidden; white-space: pre; padding: 2px 4px; line-height: 1.25; min-width: 60px; }
+  #rStrip { position: absolute; z-index: 4; display: none; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; background: rgba(253,253,251,.96); border: 1px solid #c9a14a; color: #5b4a22; font: 15px 'EB Garamond', Georgia, serif; }
+  #rStrip .pal { display: flex; flex-direction: column; align-items: stretch; width: 112px; }
+  #rStrip .pal div { display: flex; justify-content: space-between; }
+  #rStrip .pal b { font-weight: 600; }
+  #rStrip input[type=range] { width: 112px; accent-color: #b8862b; height: 22px; }
+  #rStrip button { height: 40px; border-radius: 10px; border: 1px solid #c9a14a; background: transparent; color: #5b4a22; font: 600 15px 'EB Garamond', Georgia, serif; padding: 0 12px; }
+  #rStrip button:hover, #rMenu button:hover { background: rgba(201,161,74,.15); }
+  #rStrip button.on { background: rgba(201,161,74,.3); }
+  #fStrip { position: absolute; z-index: 4; display: none; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(253,253,251,.96); border: 1px solid #c9a14a; }
+  #fStrip button { height: 40px; border-radius: 10px; border: 1px solid #c9a14a; background: transparent; color: #5b4a22; font: 600 15px 'EB Garamond', Georgia, serif; padding: 0 10px; white-space: nowrap; }
+  #fStrip button:hover { background: rgba(201,161,74,.15); }
+  #fStrip button.on { background: rgba(201,161,74,.3); }
+  #rMenu { position: absolute; z-index: 5; display: none; flex-direction: column; gap: 2px; padding: 6px; border-radius: 12px; background: rgba(253,253,251,.98); border: 1px solid #c9a14a; }
+  #rMenu button { text-align: left; height: 36px; border: 0; border-radius: 8px; background: transparent; color: #5b4a22; font: 15px 'EB Garamond', Georgia, serif; padding: 0 12px; }
+  #rMenu button span { color: #8a7a5a; font-size: 13px; margin-left: 8px; }
+  .nota { color: #9fb3c9; font: italic 13px 'EB Garamond', Georgia, serif; text-align: center; }
+  /* (25/11/2026) cartiglio del sito in fondo alla colonna di destra: carta d'epoca come la Homepage */
+  #cartiglio { margin-top: auto; flex-shrink: 0; width: 108px; margin-bottom: 6px; background: #f1e4c6; color: #2b2621; text-align: center;
+    padding: 7px 6px 6px; outline: 1px solid #b8955a; outline-offset: -4px; box-shadow: inset 0 0 0 7px #f1e4c6, inset 0 0 0 8px rgba(138,109,59,.55); }
+  #cartiglio a { color: inherit; text-decoration: none; cursor: pointer; }
+  #cartiglio .casa { display: block; }
+  #cartiglio .cs1 { font: 21px/1 'Pinyon Script', cursive; margin-top: 1px; }
+  #cartiglio .cs2 { font: 600 13px/1.15 'EB Garamond', Georgia, serif; margin-top: 2px; }
+  #cartiglio .vai { font: 12px 'EB Garamond', Georgia, serif; color: #0645ad; text-decoration: underline; text-underline-offset: 2px; margin-top: 2px; display: block; }
+  #cartiglio .reg { display: block; font: 11px/1.2 'EB Garamond', Georgia, serif; color: #6b6157; margin-top: 3px; border-top: 1px dotted #b8955a; padding-top: 3px; letter-spacing: .02em; }
+  #cartiglio .reg:hover, #cartiglio .casa:hover .vai { color: #0b0080; }
+  /* (25/11/2026) avvio: il browser concede lo schermo intero solo dopo un tocco, quindi un riquadro iniziale */
+  #avvio { position: fixed; inset: 0; z-index: 50; background: rgba(11,23,38,.88); display: flex; align-items: center; justify-content: center; }
+  #avvio .box { background: #f1e4c6; color: #2b2621; text-align: center; padding: 30px 40px 24px; outline: 1px solid #b8955a; outline-offset: -8px;
+    box-shadow: inset 0 0 0 13px #f1e4c6, inset 0 0 0 14px rgba(138,109,59,.55); min-width: 340px; }
+  #avvio h2 { font: 400 40px/1.1 'Pinyon Script', cursive; }
+  #avvio p { font: italic 17px 'EB Garamond', Georgia, serif; color: #6b6157; margin: 6px 0 18px; }
+  #avvio button { display: block; width: 100%; height: 52px; border-radius: 10px; border: 1px solid #8a6a24; background: #c9a14a; color: #0b1726;
+    font: 600 19px 'EB Garamond', Georgia, serif; cursor: pointer; }
+  #avvio button.piano { height: 36px; margin-top: 8px; background: transparent; border-color: transparent; color: #5b4a22; font: 15px 'EB Garamond', Georgia, serif; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div id="alto">
+  <div class="sx">
+    <button class="pill" id="bSchermo" title="Schermo intero (oppure lavagna in una scheda nuova)">⛶</button>
+    <div class="titolo">Marine Inception <span>· Lavagna</span></div>
+  </div>
+  <div id="comandi">
+    <button class="cmd" id="bImmagine" title="Immagine dal mio computer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="15" height="13" rx="1.5"/><path d="M3 15l4-4 4 4 3-3 4 4"/><circle cx="13" cy="9" r="1.3"/><path d="M20 3v6M17 6h6"/></svg>Immagine</button>
+    <button class="cmd" data-tool="gomma" title="Gomma (anche: tasto laterale della penna tenuto premuto)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h12"/><path d="M4.5 15.5l9-9a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8.5l-4-3.5z"/><path d="M9 11l5 5"/></svg>Gomma</button>
+    <button class="cmd" id="bAnnulla" title="Annulla (Ctrl+Z)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Annulla</button>
+    <button class="cmd" id="bRipeti" title="Ripeti (Ctrl+Y)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Ripeti</button>
+    <div class="sep"></div>
+    <button class="cmd" id="bPagina" title="Aggiungi una pagina e vai lì"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg>Pagina nuova</button>
+    <button class="cmd" id="bPulisci" title="Cancella tutto (tocca due volte)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span>Pulisci</span></button>
+    <button class="cmd" id="bPdf" title="Salva tutte le pagine in PDF A4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 10v7M9 14l3 3 3-3"/></svg>Salva PDF</button>
+  </div>
+  <div class="dx">
+    <span style="color:#9fb3c9;font-style:italic;font-size:15px">Colore</span>
+    <button class="colore on" data-col="#1b1b1b" style="background:#1b1b1b" aria-label="Nero"></button>
+    <button class="colore" data-col="#c62828" style="background:#c62828" aria-label="Rosso"></button>
+    <button class="colore" data-col="#2e7d32" style="background:#2e7d32" aria-label="Verde"></button>
+    <button class="colore" data-col="#1565c0" style="background:#1565c0" aria-label="Blu"></button>
+  </div>
+</div>
+
+<div id="sx" class="colonna">
+  <button class="str" data-tool="penna"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#ecd291" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 27l2.5-7.5L23 6l5 5L14.5 24.5z"/><path d="M20 9l5 5"/><path d="M7 27l5-1.5"/></svg>Penna</button>
+  <button class="str" data-tool="testo" title="Testo: tocca il foglio e scrivi con la tastiera; tocca un testo per correggerlo"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h20M17 8v19M13 27h8"/></svg>Testo</button>
+  <button class="str" data-tool="sottile"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.4" stroke-linecap="round"><path d="M6 28L28 6"/></svg>Linea sottile</button>
+  <button class="str" data-tool="grossa"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="4" stroke-linecap="round"><path d="M7 27L27 7"/></svg>Linea grossa</button>
+  <button class="str" data-tool="cerchio"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.8"><circle cx="17" cy="17" r="11"/><circle cx="17" cy="17" r="1.2" fill="#e2c27a"/></svg>Cerchio</button>
+  <button class="str" data-tool="sel" title="Sposta un segno, un piano cartesiano o un'immagine; gli angoli ingrandiscono immagini e assi"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linejoin="round"><path d="M9 5l16 11-7 1.5 4 8-3 1.5-4-8-6 5z"/></svg>Sposta</button>
+  <button class="str" data-tool="assi"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h26M27 19l3 3-3 3"/><path d="M10 31V4M7 7l3-3 3 3"/></svg>Assi</button>
+  <button class="str" data-tool="polare" title="Griglia polare: appoggia sul centro e trascina per il raggio (come gli assi)"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.3"><circle cx="17" cy="17" r="13"/><circle cx="17" cy="17" r="8.5"/><circle cx="17" cy="17" r="4"/><path d="M17 4v26M4 17h26"/></svg>Griglia polare</button>
+  <button class="str acceso" id="bQuadretti" title="Quadretti da 5 mm: accendi/spegni"><svg width="32" height="32" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.3"><rect x="4" y="4" width="26" height="26"/><path d="M12.7 4v26M21.3 4v26M4 12.7h26M4 21.3h26"/></svg>Quadretti</button>
+</div>
+
+<div id="dx" class="colonna">
+  <div class="etich">MOLLUSCHI</div>
+  <button class="str" id="bNautilus" title="Mette sul foglio la sezione schematica di un Nautilus"><svg width="46" height="46" viewBox="0 0 52 52" fill="none" stroke="#e2c27a" stroke-width="1.6" stroke-linecap="round"><path d="M27 27c1.5 0 2.4 1.2 2 2.6-.5 2.2-3.4 2.8-5 1.4-2.6-2-1.8-6.2 1.1-7.6 4.2-2.1 9.2.5 10.2 4.9 1.5 6.2-3.4 11.6-9.5 11.6-8 0-13.2-7.9-11.2-15.3C16.4 15 24.8 10.4 32.5 12.6 41.6 15.2 46 25 43 34.5 39.6 45.2 27 48.8 17.8 44"/></svg>Sezione Nautilus</button>
+  <button class="str" data-tool="raup" title="Modello di Raup: tocca il foglio per posare una conchiglia; trascinala per ruotarla"><svg width="46" height="46" viewBox="0 0 52 52" fill="none" stroke="#e2c27a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c3 4 7 6 7 11-1 5-9 5-10 11-1 7 6 14 4 20"/><path d="M18 6c-3 4-6 7-5 12M12.5 22c-2 5-1 10 3 13"/><path d="M34 14h12M34 24h12M34 34h12" stroke-width="1.2"/></svg>Modello di Raup</button>
+  <button class="str" data-tool="spirale" title="Spirale logaritmica: appoggia sul centro e trascina fino all'estremo"><svg width="46" height="46" viewBox="0 0 34 34" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linecap="round"><path d="M17 17c1 0 1.6.8 1.4 1.7-.3 1.4-2.2 1.8-3.3.9-1.7-1.3-1.2-4 .7-5 2.7-1.4 6 .3 6.7 3.2 1 4-2.2 7.6-6.2 7.6-5.3 0-8.6-5.2-7.3-10C10.5 10 16 7 21 8.4c6 1.7 9 8.2 7 14"/></svg>Spirale log.</button>
+  <button class="str" data-tool="fibo" title="Fibonacci: tocca il foglio per posare i primi due quadrati, poi ＋ Quadrato (quadrati sui quadretti della lavagna)"><svg width="46" height="46" viewBox="0 0 52 52" fill="none" stroke="#e2c27a" stroke-width="1.4" stroke-linejoin="round"><rect x="5" y="10" width="26" height="26"/><rect x="31" y="10" width="16" height="16"/><rect x="31" y="26" width="10" height="10"/><path d="M5 36A26 26 0 0 1 31 10A16 16 0 0 1 47 26A10 10 0 0 1 37 36" stroke-width="2" stroke-linecap="round"/></svg>Fibonacci</button>
+  <button class="str" data-tool="calibro" title="Calibro: appoggia su un punto e trascina fino all'altro"><svg width="46" height="46" viewBox="0 0 52 52" fill="none" stroke="#e2c27a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="18" width="40" height="8" rx="1"/><path d="M10 26v14l4-4V26M30 26v14l-4-4V26M30 18v-6h6v6"/></svg>Calibro</button>
+  <button class="str" data-tool="goniometro" title="Goniometro: trascina dal vertice lungo il primo lato, poi tocca il secondo"><svg width="46" height="46" viewBox="0 0 52 52" fill="none" stroke="#e2c27a" stroke-width="1.6" stroke-linecap="round"><path d="M6 36a20 20 0 0 1 40 0z"/><path d="M26 36L38 22" stroke-width="1.3"/></svg>Goniometro</button>
+  <div id="cartiglio">
+    <a class="casa" href="https://sites.google.com/view/malacologia-vedovato-homepage" target="_blank" rel="noopener" title="Il sito della Collezione (si apre in una scheda nuova: la lavagna resta qui)">
+      <svg width="26" height="26" viewBox="0 0 52 52" fill="none" stroke="#8a6a24" stroke-width="1.6" stroke-linecap="round"><path d="M27 27c1.5 0 2.4 1.2 2 2.6-.5 2.2-3.4 2.8-5 1.4-2.6-2-1.8-6.2 1.1-7.6 4.2-2.1 9.2.5 10.2 4.9 1.5 6.2-3.4 11.6-9.5 11.6-8 0-13.2-7.9-11.2-15.3C16.4 15 24.8 10.4 32.5 12.6 41.6 15.2 46 25 43 34.5 39.6 45.2 27 48.8 17.8 44"/></svg>
+      <div class="cs1">Collezione</div>
+      <div class="cs2">Marco Vedovato</div>
+      <span class="vai">Visita il sito ›</span>
+    </a>
+    <a class="reg" href="https://scientific-collections.gbif.org/institution/df2be2f2-5a74-4362-af91-89337b68ac3f" target="_blank" rel="noopener" title="Scheda della collezione su GRSciColl (GBIF)">GRSciColl<br>VEDOVATO</a>
+  </div>
+</div>
+
+<div id="area">
+  <canvas id="fondo"></canvas>
+  <canvas id="sopra" class="neutro"></canvas>
+  <div id="pagina">pagina 1 di 1</div>
+  <div id="avviso"></div>
+  <div id="pSpirale" class="pannello">
+    <h3>Spirale logaritmica</h3>
+    <div class="formula">r(θ) = a · e<sup>bθ</sup> · ogni giro × W</div>
+    <label for="sW">Crescita per giro (W)</label>
+    <div class="riga"><input id="sW" type="range" min="1.2" max="8" step="0.01" value="3"><div class="val" id="vW">3,00 ×</div></div>
+    <label for="sG">Giri disegnati</label>
+    <div class="riga"><input id="sG" type="range" min="1" max="7" step="0.25" value="3.5"><div class="val" id="vG">3,5</div></div>
+    <div class="tab2"><div class="k">b</div><div id="vB">0,175</div><div class="k">angolo α</div><div id="vA">80,1°</div></div>
+    <div class="filo"></div>
+    <div class="formula" style="font-size:15px">Spirale aurea (la leggenda): × 6,85 per giro · b 0,306 · α 73,0°</div>
+    <div class="riga" style="gap:6px;flex-wrap:wrap">
+      <button class="bott" id="sAurea">Mostra la spirale aurea</button>
+      <button class="bott" id="sVerso" title="Avvolgimento nell'altro verso">⇄ Verso</button>
+      <button class="bott" id="sElimina">Elimina</button>
+    </div>
+    <div class="nota">Trascina il centro ✛ o la maniglia dorata (ruota e ingrandisce)</div>
+  </div>
+  <div id="tBox">
+    <div id="tBarra">
+      <label for="tAltezza">Altezza</label>
+      <select id="tAltezza"><option value="17">piccola (4 mm)</option><option value="24" selected>media (5 mm)</option><option value="34">grande (7 mm)</option><option value="48">titolo (10 mm)</option></select>
+      <button id="tB" title="Grassetto" style="font-weight:bold">G</button>
+      <button id="tI" title="Corsivo" style="font-style:italic">C</button>
+      <button id="tOk" title="Fatto (oppure tocca fuori)">✓</button>
+      <button id="tNo" title="Annulla (Esc)">✕</button>
+    </div>
+    <textarea id="tArea" rows="1" spellcheck="false"></textarea>
+  </div>
+  <div id="rStrip">
+    <label class="pal"><div><b>W</b><span id="rvW">3,00</span></div><input id="rW" type="range" min="0.04" max="3" step="0.001" title="W · allargamento del giro"></label>
+    <label class="pal"><div><b>D</b><span id="rvD">0,05</span></div><input id="rD" type="range" min="0" max="0.9" step="0.01" title="D · distanza dall'asse"></label>
+    <label class="pal"><div><b>T</b><span id="rvT">0,00</span></div><input id="rT" type="range" min="0" max="6" step="0.05" title="T · salita lungo l'asse"></label>
+    <label class="pal"><div><b>N</b><span id="rvN">3,0</span></div><input id="rN" type="range" min="0.2" max="14" step="0.1" title="N · numero di giri"></label>
+    <button id="rEsempiBtn" title="Valori-modello preimpostati">Esempi ▾</button>
+    <button id="rCresci" title="Fa crescere la conchiglia dall'apice, giro dopo giro">▶ Crescita</button>
+    <button id="rSezione" title="Taglia la conchiglia sul piano dell'asse: si vedono i giri interni">Sezione</button>
+    <button id="rFili" title="Asse di accrescimento (azzurro), curva dell'apertura (oro) e asse di avvolgimento">Fili</button>
+  </div>
+  <div id="rMenu"></div>
+  <div id="fStrip">
+    <button id="fMeno" title="Toglie l'ultimo quadrato">− Quadrato</button>
+    <button id="fPiu" title="Aggiunge il quadrato successivo: lato = somma dei due precedenti">＋ Quadrato</button>
+    <button id="fArco" title="Quarti di cerchio">Arco</button>
+    <button id="fVerso" title="Avvolgimento nell'altro verso">⇄ Verso</button>
+    <button id="fGira" title="Ruota di 90°">↻ Gira</button>
+  </div>
+  <div id="nav">
+    <button id="zPiu" title="Ingrandisci"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6M7 10h6M10 7v6"/></svg></button>
+    <button id="z100" title="Pagina a tutta larghezza" style="height:30px">100%</button>
+    <button id="zMeno" title="Rimpicciolisci"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6M7 10h6"/></svg></button>
+    <button id="bMano" data-tool="mano" title="Mano: sposta il foglio"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2c27a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5V4a1.5 1.5 0 0 1 3 0v8M14 11.5V5.5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-5-2.7L4.6 14a1.5 1.5 0 0 1 2.4-1.8L8 13.5"/></svg></button>
+  </div>
+</div>
+<input type="file" id="fileImg" accept="image/*" style="display:none">
+<div id="avvio">
+  <div class="box">
+    <h2>Lavagna</h2>
+    <p>Marine Inception · Collezione Marco Vedovato</p>
+    <button id="avvioPieno">⛶ Apri a schermo intero</button>
+    <button id="avvioFinestra" class="piano">continua nella finestra</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- il documento: fogli A4 verticali, unità = 1/1000 della larghezza del foglio ---------- */
+  var PW = 1000, PH = PW * 297 / 210, GAP = 40;          // A4: 210 × 297 mm
+  var CM = PW / 21;                                      // 1 cm in unità
+  var QUAD = CM / 2;                                     // quadretti da 5 mm, come un quaderno
+  var SPESSORE = { penna: 3.2, sottile: 1.6, grossa: 6.4, cerchio: 3.2, assi: 2.6, polare: 2.2 };
+  var oggetti = [];                                      // { t:'tratto'|'linea'|'cerchio'|'assi'|'immagine', ... }
+  var pagine = 1, quadretti = true;
+  var storia = [], rifare = [];
+  var colore = '#1b1b1b', strumento = '';              // (23/11/2026) all'avvio nessuno strumento: lavagna "neutra"
+
+  /* ---------- vista ---------- */
+  var area = $('area'), fondo = $('fondo'), sopra = $('sopra');
+  var cf = fondo.getContext('2d'), cs = sopra.getContext('2d');
+  var W = 0, H = 0, dpr = 1, s = 1, ox = 0, oy = 0, sAdatta = 1;
+  function adatta() { sAdatta = (W - 40) / PW; }
+  function dimensiona() {
+    var nw = area.clientWidth, nh = area.clientHeight, prima = W;
+    dpr = window.devicePixelRatio || 1;
+    [fondo, sopra].forEach(function (c) { c.width = Math.round(nw * dpr); c.height = Math.round(nh * dpr); c.style.width = nw + 'px'; c.style.height = nh + 'px'; });
+    W = nw; H = nh; adatta();
+    if (!prima) { s = sAdatta; ox = 20; oy = 16; }
+    disegna();
+  }
+  function aSchermo(x, y) { return [x * s + ox, y * s + oy]; }
+  function aMondo(px, py) { return [(px - ox) / s, (py - oy) / s]; }
+  function topPagina(i) { return i * (PH + GAP); }
+
+  /* ---------- disegno ---------- */
+  function percorso(ctx, p) {                          // tratto levigato (punti medi)
+    ctx.beginPath();
+    if (p.length < 4) { ctx.moveTo(p[0], p[1]); ctx.lineTo(p[p.length - 2] + 0.01, p[p.length - 1]); return; }
+    ctx.moveTo(p[0], p[1]);
+    for (var i = 2; i < p.length - 2; i += 2) {
+      var mx = (p[i] + p[i + 2]) / 2, my = (p[i + 1] + p[i + 3]) / 2;
+      ctx.quadraticCurveTo(p[i], p[i + 1], mx, my);
+    }
+    ctx.lineTo(p[p.length - 2], p[p.length - 1]);
+  }
+  function freccia(ctx, x, y, dx, dy, l) {
+    var n = Math.hypot(dx, dy) || 1, ux = dx / n, uy = dy / n;
+    ctx.moveTo(x - ux * l - uy * l * 0.6, y - uy * l + ux * l * 0.6); ctx.lineTo(x, y);
+    ctx.lineTo(x - ux * l + uy * l * 0.6, y - uy * l - ux * l * 0.6);
+  }
+  var TP = 2 * Math.PI, FI = (1 + Math.sqrt(5)) / 2, W_AUREA = Math.pow(FI, 4);   // spirale aurea: × φ⁴ ≈ 6,85 per giro
+  function mm(u) { return u * 210 / PW; }
+  function num(x, d) { return x.toFixed(d).replace('.', ','); }
+  function polilinea(ctx, p) { ctx.beginPath(); ctx.moveTo(p[0], p[1]); for (var i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]); }
+  /** spirale logaritmica: dall'estremo esterno (raggio R, direzione rot) verso il centro, "giri" giri, W = crescita per giro */
+  function puntiSpirale(o, Wx) {
+    Wx = Wx || o.W;
+    var n = Math.max(80, Math.round(o.giri * 140)), out = [];
+    for (var i = 0; i <= n; i++) {
+      var f = -o.giri * TP * i / n, r = o.R * Math.pow(Wx, f / TP), a = o.rot + f * o.verso;
+      out.push(o.x + r * Math.cos(a), o.y + r * Math.sin(a));
+    }
+    return out;
+  }
+  function fineSpirale(o) { return [o.x + o.R * Math.cos(o.rot), o.y + o.R * Math.sin(o.rot)]; }
+  /** sezione schematica di Nautilus: spirale logaritmica con W = 3 per giro (polo in x,y; apertura a raggio R in direzione rot) */
+  var W_NAUT = 3, GIRI_NAUT = 2.75;
+  function rNaut(o, f) { return o.R * Math.pow(W_NAUT, f / TP); }
+  function ptNaut(o, f, r) { var a = o.rot + f * o.verso; return [o.x + r * Math.cos(a), o.y + r * Math.sin(a)]; }
+  function disegnaNautilus(ctx, o) {
+    var n = 420, i, f, q;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();                                                 // il guscio: un giro della parete esterna + l'apertura
+    for (i = 0; i <= n; i++) { f = -TP * i / n; q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    ctx.closePath(); ctx.fillStyle = '#f3ede2'; ctx.fill();
+    ctx.strokeStyle = '#a9a59e'; ctx.lineWidth = 1.2; ctx.beginPath();  // spessore del guscio
+    for (i = 0; i <= n * 2; i++) { f = -GIRI_NAUT * TP * i / (n * 2); q = ptNaut(o, f, rNaut(o, f) * 0.955); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    ctx.stroke();
+    ctx.strokeStyle = '#8d8a84'; ctx.lineWidth = 2.6; ctx.beginPath(); // parete esterna di tutti i giri
+    for (i = 0; i <= n * 2; i++) { f = -GIRI_NAUT * TP * i / (n * 2); q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    var a1 = ptNaut(o, 0, rNaut(o, 0)), a2 = ptNaut(o, 0, rNaut(o, -TP));
+    ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.stroke();
+    ctx.strokeStyle = '#9a968f'; ctx.lineWidth = 1.6;                  // setti (le pareti delle camere)
+    var fMin = -(GIRI_NAUT - 1) * TP;
+    for (f = -2.45; f > fMin; f -= TP / 15) {
+      var p1 = ptNaut(o, f, rNaut(o, f) * 0.955), p0 = ptNaut(o, f, rNaut(o, f - TP));
+      var cm = ptNaut(o, f - 0.32, (rNaut(o, f) + rNaut(o, f - TP)) / 2);
+      ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.quadraticCurveTo(cm[0], cm[1], p0[0], p0[1]); ctx.stroke();
+    }
+    ctx.setLineDash([3, 5]); ctx.lineWidth = 1.4; ctx.beginPath();   // sifone
+    for (i = 0, f = -2.3; f > fMin; f -= 0.04, i++) {
+      var rs = rNaut(o, f - TP) + 0.3 * (rNaut(o, f) - rNaut(o, f - TP)); q = ptNaut(o, f, rs);
+      if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function riquadroNautilus(o) {
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (var i = 0; i <= 120; i++) { var f = -TP * i / 120, q = ptNaut(o, f, rNaut(o, f)); x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  /** calibro: segmento con le due ganasce, misura in mm e rapporto con la misura precedente */
+  function disegnaMisura(ctx, o) {
+    var dx = o.x2 - o.x1, dy = o.y2 - o.y1, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, g = 18;
+    if (ny > 0 || (ny === 0 && nx > 0)) { nx = -nx; ny = -ny; }       // scritta sempre sopra il segno
+    ctx.save(); ctx.strokeStyle = '#8a6a24'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(o.x1, o.y1); ctx.lineTo(o.x2, o.y2);
+    ctx.moveTo(o.x1 - nx * g, o.y1 - ny * g); ctx.lineTo(o.x1 + nx * g, o.y1 + ny * g);
+    ctx.moveTo(o.x2 - nx * g, o.y2 - ny * g); ctx.lineTo(o.x2 + nx * g, o.y2 + ny * g); ctx.stroke();
+    ctx.globalAlpha = 0.18; ctx.lineWidth = 12;                       // il regolo del calibro, accennato
+    ctx.beginPath(); ctx.moveTo(o.x1 + nx * (g - 4), o.y1 + ny * (g - 4)); ctx.lineTo(o.x2 + nx * (g - 4), o.y2 + ny * (g - 4)); ctx.stroke(); ctx.globalAlpha = 1;
+    var t = num(o.mm, 1) + ' mm' + (o.rapp ? '   × ' + num(o.rapp, 2) : '');
+    ctx.font = '600 24px "EB Garamond", Georgia, serif'; ctx.textAlign = 'center';
+    var mx = (o.x1 + o.x2) / 2 + nx * 46, my = (o.y1 + o.y2) / 2 + ny * 46 + 8, tw = ctx.measureText(t).width;
+    ctx.fillStyle = 'rgba(253,253,251,.92)'; ctx.fillRect(mx - tw / 2 - 6, my - 21, tw + 12, 29);
+    ctx.fillStyle = '#8a6a24'; ctx.fillText(t, mx, my); ctx.restore();
+  }
+  /** goniometro: semicerchio graduato sul primo lato, secondo lato, arco e gradi */
+  function angoloTra(a1, a2) { var d = a2 - a1; while (d > Math.PI) d -= TP; while (d <= -Math.PI) d += TP; return d; }
+  function disegnaAngolo(ctx, o) {
+    var R = o.r, sgn = o.a2 === null ? -1 : (angoloTra(o.a1, o.a2) >= 0 ? 1 : -1), k, a, l;
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(184,134,43,.6)'; ctx.lineWidth = 1.3; ctx.beginPath();
+    ctx.moveTo(o.x - R * Math.cos(o.a1), o.y - R * Math.sin(o.a1)); ctx.lineTo(o.x + R * Math.cos(o.a1), o.y + R * Math.sin(o.a1));
+    ctx.moveTo(o.x + R * Math.cos(o.a1), o.y + R * Math.sin(o.a1)); ctx.arc(o.x, o.y, R, o.a1, o.a1 + sgn * Math.PI, sgn < 0);
+    for (k = 0; k <= 180; k += 5) { a = o.a1 + sgn * k * Math.PI / 180; l = k % 30 ? (k % 10 ? 6 : 11) : 18;
+      ctx.moveTo(o.x + R * Math.cos(a), o.y + R * Math.sin(a)); ctx.lineTo(o.x + (R - l) * Math.cos(a), o.y + (R - l) * Math.sin(a)); }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(138,106,36,.85)'; ctx.font = '15px "EB Garamond", Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (k = 0; k <= 180; k += 30) { a = o.a1 + sgn * k * Math.PI / 180; ctx.fillText(String(k), o.x + (R - 32) * Math.cos(a), o.y + (R - 32) * Math.sin(a)); }
+    ctx.strokeStyle = o.c; ctx.lineWidth = 2.6; ctx.beginPath();
+    ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + R * Math.cos(o.a1), o.y + R * Math.sin(o.a1));
+    if (o.a2 !== null) {
+      ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + R * Math.cos(o.a2), o.y + R * Math.sin(o.a2)); ctx.stroke();
+      var d = angoloTra(o.a1, o.a2), rA = Math.min(60, R * 0.4);
+      ctx.beginPath(); ctx.arc(o.x, o.y, rA, o.a1, o.a1 + d, d < 0); ctx.stroke();
+      var am = o.a1 + d / 2, t = num(Math.abs(d) * 180 / Math.PI, 1) + '°';
+      ctx.font = '600 26px "EB Garamond", Georgia, serif'; ctx.fillStyle = o.c;
+      ctx.fillText(t, o.x + (rA + 34) * Math.cos(am), o.y + (rA + 34) * Math.sin(am));
+    } else ctx.stroke();
+    ctx.restore();
+  }
+  /* ---------- testo (Arial): altezza in unità del foglio (24 ≈ 5 mm), grassetto, corsivo ---------- */
+  var misuraCtx = document.createElement('canvas').getContext('2d');
+  function fontTesto(o, k) { return (o.i ? 'italic ' : '') + (o.b ? 'bold ' : '') + (o.h * (k || 1)) + 'px Arial, Helvetica, sans-serif'; }
+  function riquadroTesto(o) {
+    misuraCtx.font = fontTesto(o); var righe = o.txt.split('\n'), w = 0;
+    righe.forEach(function (r) { w = Math.max(w, misuraCtx.measureText(r).width); });
+    return { x: o.x, y: o.y, w: Math.max(w, o.h * 0.5), h: righe.length * o.h * 1.25 };
+  }
+  function disegnaTesto(ctx, o) {
+    if (o === testoInModifica) return;
+    ctx.save(); ctx.fillStyle = o.c; ctx.font = fontTesto(o); ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    o.txt.split('\n').forEach(function (r, i) { ctx.fillText(r, o.x, o.y + i * o.h * 1.25 + o.h * 0.1); });
+    ctx.restore();
+  }
+  function disegnaOggetto(ctx, o) {
+    ctx.strokeStyle = o.c; ctx.fillStyle = o.c; ctx.lineWidth = o.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (o.t === 'tratto') { percorso(ctx, o.p); ctx.stroke(); }
+    else if (o.t === 'linea') { ctx.beginPath(); ctx.moveTo(o.x1, o.y1); ctx.lineTo(o.x2, o.y2); ctx.stroke(); }
+    else if (o.t === 'cerchio') { ctx.beginPath(); ctx.arc(o.x, o.y, Math.max(o.r, 0.5), 0, Math.PI * 2); ctx.stroke(); }
+    else if (o.t === 'assi') {
+      var L = o.l, k = Math.max(1, Math.floor(L / CM)), i;
+      ctx.beginPath();
+      ctx.moveTo(o.x - L, o.y); ctx.lineTo(o.x + L, o.y); ctx.moveTo(o.x, o.y + L); ctx.lineTo(o.x, o.y - L);
+      freccia(ctx, o.x + L, o.y, 1, 0, 14); freccia(ctx, o.x, o.y - L, 0, -1, 14);
+      for (i = -k; i <= k; i++) { if (!i) continue; var d = i * CM; if (Math.abs(d) > L - 16) continue;
+        ctx.moveTo(o.x + d, o.y - 6); ctx.lineTo(o.x + d, o.y + 6); ctx.moveTo(o.x - 6, o.y - d); ctx.lineTo(o.x + 6, o.y - d); }
+      ctx.stroke();
+      ctx.font = 'italic 32px "EB Garamond", Georgia, serif';
+      ctx.fillText('x', o.x + L - 10, o.y + 34); ctx.fillText('y', o.x - 30, o.y - L + 18); ctx.fillText('O', o.x - 30, o.y + 30);
+    }
+    else if (o.t === 'immagine') { ctx.drawImage(o.img, o.x, o.y, o.w, o.h); }
+    else if (o.t === 'spirale') {
+      if (o.aurea) { ctx.save(); ctx.strokeStyle = '#b8862b'; ctx.lineWidth = o.w * 0.9; ctx.setLineDash([12, 9]); polilinea(ctx, puntiSpirale(o, W_AUREA)); ctx.stroke(); ctx.restore(); }
+      polilinea(ctx, puntiSpirale(o)); ctx.stroke();
+    }
+    else if (o.t === 'nautilus') disegnaNautilus(ctx, o);
+    else if (o.t === 'misura') disegnaMisura(ctx, o);
+    else if (o.t === 'angolo') disegnaAngolo(ctx, o);
+    else if (o.t === 'raup') disegnaRaup(ctx, o);
+    else if (o.t === 'fibo') disegnaFibo(ctx, o);
+    else if (o.t === 'polare') disegnaPolareOgg(ctx, o);
+    else if (o.t === 'testo') disegnaTesto(ctx, o);
+  }
+  function ultimo(t) { for (var i = oggetti.length - 1; i >= 0; i--) if (oggetti[i].t === t) return oggetti[i]; return null; }
+  /** griglia polare come oggetto (come gli assi): cerchi ogni centimetro, raggi ogni 15°, gradi ogni 30° */
+  function disegnaPolareOgg(ctx, o) {
+    var L = o.l, r, k, a;
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.45; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (r = CM; r < L - 2; r += CM) { ctx.moveTo(o.x + r, o.y); ctx.arc(o.x, o.y, r, 0, TP); }
+    for (k = 0; k < 24; k++) { a = k * Math.PI / 12; ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + L * Math.cos(a), o.y + L * Math.sin(a)); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.lineWidth = o.w; ctx.beginPath(); ctx.arc(o.x, o.y, L, 0, TP); ctx.stroke();
+    ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, TP); ctx.fill();
+    ctx.font = '18px "EB Garamond", Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (k = 0; k < 12; k++) { a = -k * Math.PI / 6; ctx.fillText((k * 30) + '°', o.x + (L + 22) * Math.cos(a), o.y + (L + 22) * Math.sin(a)); }
+    ctx.restore();
+  }
+  function disegnaFogli(ctx, conQuadretti) {
+    for (var i = 0; i < pagine; i++) {
+      var t = topPagina(i);
+      ctx.fillStyle = '#fdfdfb'; ctx.fillRect(0, t, PW, PH);
+      if (conQuadretti) {
+        ctx.strokeStyle = '#dbe3ec'; ctx.lineWidth = 0.8; ctx.beginPath();
+        for (var x = QUAD; x < PW - 1; x += QUAD) { ctx.moveTo(x, t); ctx.lineTo(x, t + PH); }
+        for (var y = QUAD; y < PH - 1; y += QUAD) { ctx.moveTo(0, t + y); ctx.lineTo(PW, t + y); }
+        ctx.stroke();
+      }
+    }
+  }
+  function disegna() {
+    cf.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cf.fillStyle = '#26384d'; cf.fillRect(0, 0, W, H);
+    cf.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy);
+    disegnaFogli(cf, quadretti);
+    oggetti.forEach(function (o) { disegnaOggetto(cf, o); });
+    aggiornaPagina();
+    aggiornaStriscia();
+    if (tBox.style.display === 'flex') aggiornaCasella();
+    disegnaSopra();
+  }
+
+  /* ---------- livello sopra: tratto in corso, puntino della penna, selezione immagine ---------- */
+  var punta = null, inCorso = null, gommaAttiva = false, selezione = null, spiraleAttiva = null, attesaAngolo = null;
+  function disegnaSopra() {
+    cs.setTransform(dpr, 0, 0, dpr, 0, 0); cs.clearRect(0, 0, W, H);
+    cs.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy);
+    if (inCorso) disegnaOggetto(cs, inCorso);
+    if (attesaAngolo) disegnaOggetto(cs, attesaAngolo);
+    if (strumento === 'spirale' && spiraleAttiva && oggetti.indexOf(spiraleAttiva) >= 0) {
+      var sp = spiraleAttiva, fe = fineSpirale(sp);
+      cs.lineWidth = 2.5 / s; cs.strokeStyle = '#b8862b'; cs.fillStyle = 'rgba(253,253,251,.85)';
+      cs.beginPath(); cs.arc(sp.x, sp.y, 13 / s, 0, TP); cs.fill(); cs.stroke();
+      cs.beginPath(); cs.moveTo(sp.x - 8 / s, sp.y); cs.lineTo(sp.x + 8 / s, sp.y); cs.moveTo(sp.x, sp.y - 8 / s); cs.lineTo(sp.x, sp.y + 8 / s); cs.stroke();
+      cs.fillStyle = '#b8862b'; cs.beginPath(); cs.arc(fe[0], fe[1], 15 / s, 0, TP); cs.fill();
+      cs.strokeStyle = '#fff'; cs.lineWidth = 2 / s; cs.beginPath(); cs.arc(fe[0], fe[1], 7 / s, -2.4, 1.4); cs.stroke();
+    }
+    if (selezione) {
+      cs.strokeStyle = '#b8862b'; cs.lineWidth = 2 / s; cs.setLineDash([8 / s, 6 / s]);
+      var rq = riquadro(selezione), mg = 8 / s;
+      cs.strokeRect(rq.x - mg, rq.y - mg, rq.w + 2 * mg, rq.h + 2 * mg); cs.setLineDash([]);
+      if (ridimensionabile(selezione)) angoli(selezione).forEach(function (a) { var r = 9 / s; cs.fillStyle = '#fff'; cs.fillRect(a[0] - r, a[1] - r, 2 * r, 2 * r); cs.strokeRect(a[0] - r, a[1] - r, 2 * r, 2 * r); });
+    }
+    if (punta && strumento === 'fibo' && fiboDaPosare) {   // dove andrà il primo quadratino
+      var gm = aMondo(punta[0], punta[1]), gg = agganciaGriglia(gm[0], gm[1]);
+      cs.strokeStyle = colore; cs.lineWidth = 2 / s; cs.setLineDash([5 / s, 4 / s]);
+      cs.strokeRect(gg[0], gg[1], 2 * QUAD, QUAD); cs.beginPath(); cs.moveTo(gg[0] + QUAD, gg[1]); cs.lineTo(gg[0] + QUAD, gg[1] + QUAD); cs.stroke(); cs.setLineDash([]);
+    }
+    if (punta && strumento && strumento !== 'mano' && strumento !== 'sel' && strumento !== 'testo' && strumento !== 'raup' && strumento !== 'fibo') {
+      cs.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var gom = gommaAttiva || strumento === 'gomma';
+      if (gom) { cs.strokeStyle = '#555'; cs.lineWidth = 1.5; cs.beginPath(); cs.arc(punta[0], punta[1], RAGGIO_GOMMA, 0, Math.PI * 2); cs.stroke(); }
+      else {
+        var r = Math.max(3, (SPESSORE[strumento] || SPESSORE.penna) * s / 2);
+        cs.fillStyle = colore; cs.beginPath(); cs.arc(punta[0], punta[1], r, 0, Math.PI * 2); cs.fill();
+        cs.strokeStyle = 'rgba(255,255,255,.9)'; cs.lineWidth = 1.5; cs.beginPath(); cs.arc(punta[0], punta[1], r + 2, 0, Math.PI * 2); cs.stroke();
+      }
+    }
+  }
+
+  /* ---------- annulla / ripeti ---------- */
+  function salvaStato() { storia.push({ o: oggetti.slice(), p: pagine }); if (storia.length > 200) storia.shift(); rifare = []; }
+  function annulla() { if (!storia.length) return; rifare.push({ o: oggetti.slice(), p: pagine }); var st = storia.pop(); oggetti = st.o; pagine = st.p; selezione = null; disegna(); }
+  function ripeti() { if (!rifare.length) return; storia.push({ o: oggetti.slice(), p: pagine }); var st = rifare.pop(); oggetti = st.o; pagine = st.p; selezione = null; disegna(); }
+
+  /* ---------- pagine: se ne aggiunge una quando si scrive in fondo all'ultima ---------- */
+  function fondoOggetto(o) {
+    if (o.t === 'tratto') { var m = -1e9; for (var i = 1; i < o.p.length; i += 2) m = Math.max(m, o.p[i]); return m; }
+    if (o.t === 'linea') return Math.max(o.y1, o.y2);
+    if (o.t === 'cerchio') return o.y + o.r;
+    if (o.t === 'assi' || o.t === 'polare') return o.y + o.l;
+    if (o.t === 'spirale' || o.t === 'nautilus') return o.y + o.R;
+    if (o.t === 'misura') return Math.max(o.y1, o.y2);
+    if (o.t === 'angolo') return o.y + o.r;
+    if (o.t === 'testo') { var bq = riquadroTesto(o); return o.y + bq.h; }
+    if (o.t === 'fibo') { var bf = riquadroFibo(o); return bf.y + bf.h; }
+    return o.y + o.h;
+  }
+  function controllaPagine(o) {
+    var y = fondoOggetto(o);
+    while (y > topPagina(pagine - 1) + PH * 0.8) pagine++;
+  }
+  function aggiungi(o) { salvaStato(); oggetti.push(o); controllaPagine(o); disegna(); }
+
+  /* ---------- gomma: cancella i segni toccati ---------- */
+  var RAGGIO_GOMMA = 14;
+  function distSeg(px, py, x1, y1, x2, y2) {
+    var dx = x2 - x1, dy = y2 - y1, l = dx * dx + dy * dy, t = l ? ((px - x1) * dx + (py - y1) * dy) / l : 0;
+    t = Math.max(0, Math.min(1, t)); return Math.hypot(px - x1 - t * dx, py - y1 - t * dy);
+  }
+  function tocca(o, x, y, r) {
+    if (o.t === 'tratto') { for (var i = 0; i < o.p.length - 2; i += 2) if (distSeg(x, y, o.p[i], o.p[i + 1], o.p[i + 2], o.p[i + 3]) < r + o.w / 2) return true; return o.p.length === 2 && Math.hypot(x - o.p[0], y - o.p[1]) < r; }
+    if (o.t === 'linea') return distSeg(x, y, o.x1, o.y1, o.x2, o.y2) < r + o.w / 2;
+    if (o.t === 'cerchio') return Math.abs(Math.hypot(x - o.x, y - o.y) - o.r) < r + o.w / 2;
+    if (o.t === 'assi') return distSeg(x, y, o.x - o.l, o.y, o.x + o.l, o.y) < r || distSeg(x, y, o.x, o.y - o.l, o.x, o.y + o.l) < r;
+    if (o.t === 'polare') {                             // la gomma prende il cerchio esterno o un raggio
+      var dd = Math.hypot(x - o.x, y - o.y); if (Math.abs(dd - o.l) < r + o.w) return true; if (dd > o.l) return false;
+      var ang = Math.atan2(y - o.y, x - o.x), passo = Math.PI / 12, resto = Math.abs(ang - Math.round(ang / passo) * passo);
+      return resto * dd < r;
+    }
+    if (o.t === 'immagine' || o.t === 'raup') return x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h;
+    if (o.t === 'fibo') { var bfi = riquadroFibo(o); return x > bfi.x - r && x < bfi.x + bfi.w + r && y > bfi.y - r && y < bfi.y + bfi.h + r; }
+    if (o.t === 'testo') { var bt = riquadroTesto(o); return x > bt.x - r && x < bt.x + bt.w + r && y > bt.y - r && y < bt.y + bt.h + r; }
+    if (o.t === 'spirale') { var q = puntiSpirale(o); for (var j = 0; j < q.length - 2; j += 2) if (distSeg(x, y, q[j], q[j + 1], q[j + 2], q[j + 3]) < r + o.w / 2) return true; return false; }
+    if (o.t === 'nautilus') { var b = riquadroNautilus(o); return x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h; }
+    if (o.t === 'misura') return distSeg(x, y, o.x1, o.y1, o.x2, o.y2) < r + 6;
+    if (o.t === 'angolo') return distSeg(x, y, o.x, o.y, o.x + o.r * Math.cos(o.a1), o.y + o.r * Math.sin(o.a1)) < r ||
+      (o.a2 !== null && distSeg(x, y, o.x, o.y, o.x + o.r * Math.cos(o.a2), o.y + o.r * Math.sin(o.a2)) < r);
+    return false;
+  }
+  var gommaSalvata = false;
+  function cancellaIn(x, y) {
+    var r = RAGGIO_GOMMA / s, resto = oggetti.filter(function (o) { return !tocca(o, x, y, r); });
+    if (resto.length !== oggetti.length) {
+      if (!gommaSalvata) { salvaStato(); gommaSalvata = true; }
+      oggetti = resto; if (selezione && oggetti.indexOf(selezione) < 0) selezione = null; disegna();
+    }
+  }
+
+  /* ---------- Sposta: ogni segno si può spostare; immagini e assi si ingrandiscono dagli angoli ---------- */
+  function riquadro(o) {
+    if (o.t === 'immagine' || o.t === 'raup') return { x: o.x, y: o.y, w: o.w, h: o.h };
+    if (o.t === 'fibo') return riquadroFibo(o);
+    if (o.t === 'testo') return riquadroTesto(o);
+    if (o.t === 'assi' || o.t === 'polare') return { x: o.x - o.l, y: o.y - o.l, w: 2 * o.l, h: 2 * o.l };
+    if (o.t === 'cerchio') return { x: o.x - o.r, y: o.y - o.r, w: 2 * o.r, h: 2 * o.r };
+    if (o.t === 'nautilus') return riquadroNautilus(o);
+    if (o.t === 'angolo') return { x: o.x - o.r, y: o.y - o.r, w: 2 * o.r, h: 2 * o.r };
+    var pp = o.t === 'spirale' ? puntiSpirale(o) : o.p;
+    var xs = (o.t === 'linea' || o.t === 'misura') ? [o.x1, o.x2] : pp.filter(function (v, i) { return !(i % 2); });
+    var ys = (o.t === 'linea' || o.t === 'misura') ? [o.y1, o.y2] : pp.filter(function (v, i) { return i % 2; });
+    var x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return { x: x0, y: y0, w: Math.max.apply(null, xs) - x0, h: Math.max.apply(null, ys) - y0 };
+  }
+  function ridimensionabile(o) { return o.t === 'immagine' || o.t === 'assi' || o.t === 'polare' || o.t === 'nautilus' || o.t === 'raup'; }
+  function angoli(o) { var b = riquadro(o); return [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]]; }
+  function dentro(o, x, y) { var b = riquadro(o), m = 6 / s; return x > b.x - m && x < b.x + b.w + m && y > b.y - m && y < b.y + b.h + m; }
+  function oggettoIn(x, y) {
+    for (var i = oggetti.length - 1; i >= 0; i--) {
+      var o = oggetti[i];
+      if ((o.t === 'immagine' || o.t === 'assi' || o.t === 'polare' || o.t === 'nautilus' || o.t === 'raup' || o.t === 'fibo') ? dentro(o, x, y) : tocca(o, x, y, 12 / s)) return o;
+    }
+    return null;
+  }
+  function sostituisci(vecchio) { var n = {}; for (var k in vecchio) n[k] = vecchio[k]; if (n.p) n.p = n.p.slice(); oggetti[oggetti.indexOf(vecchio)] = n; return n; }
+  function trasla(o, dx, dy) {
+    if (o.t === 'tratto') { for (var i = 0; i < o.p.length; i += 2) { o.p[i] += dx; o.p[i + 1] += dy; } }
+    else if (o.t === 'linea' || o.t === 'misura') { o.x1 += dx; o.y1 += dy; o.x2 += dx; o.y2 += dy; }
+    else { o.x += dx; o.y += dy; }
+  }
+  $('bImmagine').onclick = function () { $('fileImg').value = ''; $('fileImg').click(); };
+  $('fileImg').onchange = function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var lettore = new FileReader();
+    lettore.onload = function () {
+      posaImmagine(lettore.result);
+    };
+    lettore.readAsDataURL(f);
+  };
+  function posaImmagine(src) {
+      var img = new Image();
+      img.onload = function () {
+        var c = aMondo(W / 2, H / 2), maxW = PW * 0.6, maxH = Math.min(PH * 0.6, (H / s) * 0.8);
+        var k = Math.min(maxW / img.width, maxH / img.height, 1e9), w = img.width * k, h = img.height * k;
+        var x = Math.max(0, Math.min(PW - w, c[0] - w / 2));
+        var pg = Math.min(pagine - 1, Math.max(0, Math.floor(c[1] / (PH + GAP)))), t0 = topPagina(pg);   // tutta dentro un foglio
+        var y = Math.max(t0 + 20, Math.min(t0 + PH - h - 20, c[1] - h / 2));
+        var o = { t: 'immagine', img: img, x: x, y: y, w: w, h: h };
+        aggiungi(o); scegli('sel'); selezione = o; disegnaSopra();
+      };
+      img.src = src;
+  }
+  window.__lav = { posaImmagine: posaImmagine };
+
+  /* ---------- penna e mouse ---------- */
+  var attivo = null;                                   // { modo, ... } mentre la punta è appoggiata
+  sopra.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  function eGomma(e) { return strumento === 'gomma' || (e.buttons & 2) || (e.buttons & 32) || e.button === 2 || e.button === 5; }
+  sopra.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); sopra.setPointerCapture(e.pointerId);
+    var r = sopra.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, m = aMondo(px, py);
+    punta = [px, py];
+    if (!strumento && !eGomma(e)) return;               // lavagna neutra: il tocco non fa niente (il tasto laterale resta gomma)
+    if (strumento === 'mano') { attivo = { modo: 'mano', px: px, py: py, ox: ox, oy: oy }; sopra.style.cursor = 'grabbing'; return; }
+    if (strumento === 'sel') {
+      if (selezione && ridimensionabile(selezione)) {
+        var ang = angoli(selezione), hit = -1;
+        ang.forEach(function (a, i) { if (Math.hypot(a[0] - m[0], a[1] - m[1]) < 16 / s) hit = i; });
+        if (hit >= 0 && selezione.t === 'nautilus') { salvaStato(); selezione = sostituisci(selezione); attivo = { modo: 'ridimN', R0: selezione.R, d0: Math.max(1, Math.hypot(m[0] - selezione.x, m[1] - selezione.y)) }; return; }
+        if (hit >= 0) { salvaStato(); selezione = sostituisci(selezione); var opp = ang[3 - hit]; attivo = { modo: 'ridim', ox: opp[0], oy: opp[1], rapp: (selezione.t === 'immagine' || selezione.t === 'raup') ? selezione.w / selezione.h : 1 }; return; }
+      }
+      var og = oggettoIn(m[0], m[1]);
+      if (og) { salvaStato(); selezione = sostituisci(og); attivo = { modo: 'muovi', x: m[0], y: m[1] }; disegna(); return; }
+      selezione = null; disegnaSopra(); return;
+    }
+    if (strumento === 'testo' && !eGomma(e)) {
+      if (tBox.style.display === 'flex') { chiudiTesto(true); return; }      // un tocco fuori conferma
+      for (var ti = oggetti.length - 1; ti >= 0; ti--) if (oggetti[ti].t === 'testo' && tocca(oggetti[ti], m[0], m[1], 4 / s)) { apriTesto(oggetti[ti]); return; }
+      apriTesto(null, m[0], m[1] - 12); return;
+    }
+    if (strumento === 'goniometro' && attesaAngolo && !eGomma(e)) {     // secondo lato: il tocco lo fissa
+      var g = attesaAngolo; attesaAngolo = null; g.a2 = Math.atan2(m[1] - g.y, m[0] - g.x); g.gradi = Math.abs(angoloTra(g.a1, g.a2)) * 180 / Math.PI;
+      aggiungi(g); return;
+    }
+    if (strumento === 'raup' && !eGomma(e)) {
+      rMenu.style.display = 'none';
+      for (var q = oggetti.length - 1; q >= 0; q--) {
+        var ro = oggetti[q];
+        if (ro.t === 'raup' && m[0] > ro.x && m[0] < ro.x + ro.w && m[1] > ro.y && m[1] < ro.y + ro.h) {
+          salvaStato(); raupAttivo = sostituisci(ro);
+          attivo = { modo: 'raupRuota', px: px, py: py, q0: orientamento(raupAttivo) }; aggiornaStriscia(); return;
+        }
+      }
+      if (!raupDaPosare) {                              // una conchiglia per ogni tocco dell'icona (23/11/2026)
+        raupAttivo = null; aggiornaStriscia();
+        avviso('Per posare un\'altra conchiglia tocca di nuovo l\'icona "Modello di Raup"'); return;
+      }
+      raupDaPosare = false;
+      var lato = Math.min(PW * 0.5, (H / s) * 0.55);
+      var nr = { t: 'raup', x: Math.max(0, Math.min(PW - lato, m[0] - lato / 2)), y: m[1] - lato / 2, w: lato, h: lato, W: 3, D: 0.05, T: 0, N: 3, q: orientamentoIniziale(0.7, 0.35), img: null };
+      rendiRaup(nr); aggiungi(nr); raupAttivo = nr; aggiornaStriscia(); cursoreRaup(m); return;
+    }
+    if (strumento === 'fibo' && !eGomma(e)) {           // (25/11/2026) Fibonacci
+      for (var fq = oggetti.length - 1; fq >= 0; fq--) if (oggetti[fq].t === 'fibo' && dentro(oggetti[fq], m[0], m[1])) { fiboAttivo = oggetti[fq]; disegna(); return; }
+      if (!fiboDaPosare) { fiboAttivo = null; disegna(); avviso('Per posare un\'altra costruzione tocca di nuovo l\'icona "Fibonacci"'); return; }
+      var gp = agganciaGriglia(m[0], m[1]);
+      var nf = { t: 'fibo', x: gp[0], y: gp[1], u: 1, n: 2, giro: 0, verso: 1, arco: true, c: colore };
+      if (!fiboStaNelFoglio(nf)) { avviso('Troppo vicino al bordo del foglio'); return; }
+      fiboDaPosare = false; aggiungi(nf); fiboAttivo = nf; disegna(); return;
+    }
+    if (strumento === 'spirale' && !eGomma(e)) {
+      var sp = (spiraleAttiva && oggetti.indexOf(spiraleAttiva) >= 0) ? spiraleAttiva : null;
+      if (sp) {
+        var fe = fineSpirale(sp);
+        if (Math.hypot(m[0] - fe[0], m[1] - fe[1]) < 22 / s) { salvaStato(); spiraleAttiva = sostituisci(sp); attivo = { modo: 'spFine' }; return; }
+        if (Math.hypot(m[0] - sp.x, m[1] - sp.y) < 20 / s) { salvaStato(); spiraleAttiva = sostituisci(sp); attivo = { modo: 'spCentro', x: m[0], y: m[1] }; return; }
+      }
+      for (var k = oggetti.length - 1; k >= 0; k--) if (oggetti[k].t === 'spirale' && oggetti[k] !== sp && tocca(oggetti[k], m[0], m[1], 12 / s)) { spiraleAttiva = oggetti[k]; aggiornaPannello(); disegna(); return; }
+      inCorso = { t: 'spirale', c: colore, w: SPESSORE.penna, x: m[0], y: m[1], R: 0, rot: 0, W: 3, giri: 3.5, verso: 1, aurea: false };
+      attivo = { modo: 'spNuova' }; disegnaSopra(); return;
+    }
+    if (eGomma(e)) { gommaAttiva = true; gommaSalvata = false; attivo = { modo: 'gomma' }; cancellaIn(m[0], m[1]); return; }
+    if (strumento === 'penna') { inCorso = { t: 'tratto', c: colore, w: SPESSORE.penna, p: [m[0], m[1]] }; attivo = { modo: 'penna' }; }
+    else if (strumento === 'sottile' || strumento === 'grossa') { inCorso = { t: 'linea', c: colore, w: SPESSORE[strumento], x1: m[0], y1: m[1], x2: m[0], y2: m[1] }; attivo = { modo: 'linea' }; }
+    else if (strumento === 'cerchio') { inCorso = { t: 'cerchio', c: colore, w: SPESSORE.cerchio, x: m[0], y: m[1], r: 0 }; attivo = { modo: 'cerchio' }; }
+    else if (strumento === 'assi') { inCorso = { t: 'assi', c: colore, w: SPESSORE.assi, x: m[0], y: m[1], l: 0 }; attivo = { modo: 'assi' }; }
+    else if (strumento === 'polare') { inCorso = { t: 'polare', c: colore, w: SPESSORE.polare, x: m[0], y: m[1], l: 0 }; attivo = { modo: 'polare' }; }
+    else if (strumento === 'calibro') { inCorso = { t: 'misura', c: '#8a6a24', w: 2, x1: m[0], y1: m[1], x2: m[0], y2: m[1], mm: 0, rapp: 0 }; attivo = { modo: 'calibro' }; }
+    else if (strumento === 'goniometro') { inCorso = { t: 'angolo', c: colore, w: 2.6, x: m[0], y: m[1], a1: 0, a2: null, r: 0 }; attivo = { modo: 'gon1' }; }
+    disegnaSopra();
+  });
+  sopra.addEventListener('pointermove', function (e) {
+    var r = sopra.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+    punta = [px, py];
+    if (!attivo) {
+      gommaAttiva = !!(e.buttons & 2) || !!(e.buttons & 32);
+      if (strumento === 'raup') cursoreRaup(aMondo(px, py));
+      if (attesaAngolo) { var mq = aMondo(px, py); attesaAngolo.a2 = Math.atan2(mq[1] - attesaAngolo.y, mq[0] - attesaAngolo.x); }
+      disegnaSopra(); return;
+    }
+    var m = aMondo(px, py);
+    if (attivo.modo === 'spNuova' || attivo.modo === 'spFine') {
+      var o2 = attivo.modo === 'spNuova' ? inCorso : spiraleAttiva;
+      o2.R = Math.hypot(m[0] - o2.x, m[1] - o2.y); o2.rot = Math.atan2(m[1] - o2.y, m[0] - o2.x);
+      if (attivo.modo === 'spNuova') disegnaSopra(); else disegna(); return;
+    }
+    if (attivo.modo === 'raupRuota') {
+      // (23/11/2026) rotazione "a trackball": destra/sinistra attorno all'asse verticale dello SCHERMO,
+      // su/giù attorno all'asse orizzontale dello schermo, qualunque sia la posizione della conchiglia
+      raupAttivo.q = qNorm(qMul(qMul(qAsse(1, 0, 0, (py - attivo.py) * 0.012), qAsse(0, 1, 0, (px - attivo.px) * 0.012)), attivo.q0));
+      ruotaRaup(); return;
+    }
+    if (attivo.modo === 'spCentro') { spiraleAttiva.x += m[0] - attivo.x; spiraleAttiva.y += m[1] - attivo.y; attivo.x = m[0]; attivo.y = m[1]; disegna(); return; }
+    if (attivo.modo === 'calibro') {
+      inCorso.x2 = m[0]; inCorso.y2 = m[1]; inCorso.mm = mm(Math.hypot(m[0] - inCorso.x1, m[1] - inCorso.y1));
+      var pm = ultimo('misura'); inCorso.rapp = pm && pm.mm > 0 ? inCorso.mm / pm.mm : 0; disegnaSopra(); return;
+    }
+    if (attivo.modo === 'gon1') { inCorso.r = Math.hypot(m[0] - inCorso.x, m[1] - inCorso.y); inCorso.a1 = Math.atan2(m[1] - inCorso.y, m[0] - inCorso.x); disegnaSopra(); return; }
+    if (attivo.modo === 'mano') { ox = attivo.ox + px - attivo.px; oy = attivo.oy + py - attivo.py; disegna(); return; }
+    if (attivo.modo === 'muovi') { trasla(selezione, m[0] - attivo.x, m[1] - attivo.y); attivo.x = m[0]; attivo.y = m[1]; disegna(); return; }
+    if (attivo.modo === 'ridimN') { selezione.R = Math.max(40, attivo.R0 * Math.hypot(m[0] - selezione.x, m[1] - selezione.y) / attivo.d0); disegna(); return; }
+    if (attivo.modo === 'ridim' && selezione.t === 'polare') { selezione.l = Math.max(30, Math.hypot(m[0] - selezione.x, m[1] - selezione.y) / Math.SQRT2); disegna(); return; }
+    if (attivo.modo === 'ridim' && selezione.t === 'assi') {                 // assi: il centro resta fermo, l'angolo decide la lunghezza
+      selezione.l = Math.max(30, Math.max(Math.abs(m[0] - selezione.x), Math.abs(m[1] - selezione.y))); disegna(); return;
+    }
+    if (attivo.modo === 'ridim') {
+      var w = Math.max(30, Math.abs(m[0] - attivo.ox)), h = w / attivo.rapp;
+      selezione.w = w; selezione.h = h;
+      selezione.x = m[0] < attivo.ox ? attivo.ox - w : attivo.ox; selezione.y = m[1] < attivo.oy ? attivo.oy - h : attivo.oy;
+      disegna(); return;
+    }
+    if (attivo.modo === 'gomma') { cancellaIn(m[0], m[1]); disegnaSopra(); return; }
+    if (attivo.modo === 'penna') {
+      var ev = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      if (!ev.length) ev = [e];
+      ev.forEach(function (c) {
+        var q = aMondo(c.clientX - r.left, c.clientY - r.top), p = inCorso.p;
+        if (Math.hypot(q[0] - p[p.length - 2], q[1] - p[p.length - 1]) > 0.8 / s) p.push(q[0], q[1]);
+      });
+    }
+    else if (attivo.modo === 'linea') { inCorso.x2 = m[0]; inCorso.y2 = m[1]; }
+    else if (attivo.modo === 'cerchio') { inCorso.r = Math.hypot(m[0] - inCorso.x, m[1] - inCorso.y); }
+    else if (attivo.modo === 'assi') { inCorso.l = Math.max(Math.abs(m[0] - inCorso.x), Math.abs(m[1] - inCorso.y)); }
+    else if (attivo.modo === 'polare') { inCorso.l = Math.hypot(m[0] - inCorso.x, m[1] - inCorso.y); }
+    disegnaSopra();
+  });
+  function fine() {
+    if (strumento === 'testo' && tBox.style.display === 'flex') tArea.focus();
+    if (!attivo) return;
+    var modo = attivo.modo; attivo = null; gommaAttiva = false;
+    if (modo === 'mano') { sopra.style.cursor = ''; return; }
+    if (modo === 'muovi' && selezione && selezione.t === 'fibo') { var gq = agganciaGriglia(selezione.x, selezione.y); selezione.x = gq[0]; selezione.y = gq[1]; }
+    if ((modo === 'muovi' || modo === 'ridim' || modo === 'ridimN') && selezione) { controllaPagine(selezione); disegna(); return; }
+    if (modo === 'raupRuota') { rendiRaup(raupAttivo); disegna(); return; }
+    if (modo === 'spCentro' || modo === 'spFine') { controllaPagine(spiraleAttiva); aggiornaPannello(); disegna(); return; }
+    if (modo === 'spNuova') {
+      var ns = inCorso; inCorso = null;
+      if (ns.R > 20) { aggiungi(ns); spiraleAttiva = ns; aggiornaPannello(); } else disegnaSopra();
+      return;
+    }
+    if (modo === 'gon1') {
+      var ga = inCorso; inCorso = null;
+      if (ga.r > 20) { ga.r = Math.max(ga.r, 140); ga.a2 = ga.a1; attesaAngolo = ga; avviso('Ora tocca dove passa il secondo lato'); }
+      disegnaSopra(); return;
+    }
+    if (inCorso) {
+      var o = inCorso; inCorso = null;
+      var vuoto = ((o.t === 'linea' || o.t === 'misura') && Math.hypot(o.x2 - o.x1, o.y2 - o.y1) < 2) || (o.t === 'cerchio' && o.r < 2) || ((o.t === 'assi' || o.t === 'polare') && o.l < 20);
+      if (!vuoto) aggiungi(o); else disegnaSopra();
+    }
+  }
+  sopra.addEventListener('pointerup', fine);
+  sopra.addEventListener('pointercancel', fine);
+  sopra.addEventListener('pointerleave', function () { if (!attivo) { punta = null; disegnaSopra(); } });
+
+  /* ---------- zoom e spostamento ---------- */
+  function zoom(f, cx, cy) {
+    if (cx === undefined) { cx = W / 2; cy = H / 2; }
+    var ns = Math.max(sAdatta * 0.3, Math.min(sAdatta * 5, s * f)), w = aMondo(cx, cy);
+    s = ns; ox = cx - w[0] * s; oy = cy - w[1] * s; disegna();
+  }
+  $('zPiu').onclick = function () { zoom(1.25); };
+  $('zMeno').onclick = function () { zoom(0.8); };
+  $('z100').onclick = function () { var c = aMondo(W / 2, H / 2); s = sAdatta; ox = 20; oy = H / 2 - c[1] * s; disegna(); };
+  area.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (e.ctrlKey) { var r = area.getBoundingClientRect(); zoom(e.deltaY < 0 ? 1.1 : 0.9, e.clientX - r.left, e.clientY - r.top); }
+    else { oy -= e.deltaY; ox -= e.deltaX; disegna(); }
+  }, { passive: false });
+  function aggiornaPagina() {
+    var cy = aMondo(W / 2, H / 2)[1], n = Math.min(pagine, Math.max(1, Math.floor(cy / (PH + GAP)) + 1));
+    $('pagina').textContent = 'A4 · pagina ' + n + ' di ' + pagine;
+  }
+
+  /* ---------- strumenti, colori, comandi ---------- */
+  function scegli(t) {
+    if (t !== 'testo') chiudiTesto(true);
+    strumento = t;
+    document.querySelectorAll('[data-tool]').forEach(function (b) { b.classList.toggle('on', b.dataset.tool === t); });
+    sopra.className = t === 'mano' ? 'mano' : t === 'sel' ? 'sel' : t === 'testo' ? 'testo' : t === 'raup' ? 'raup posa' : t === 'fibo' ? '' : !t ? 'neutro' : 'disegno';
+    if (t !== 'sel') selezione = null;
+    if (t !== 'goniometro') attesaAngolo = null;
+    if (t === 'spirale' && !(spiraleAttiva && oggetti.indexOf(spiraleAttiva) >= 0)) spiraleAttiva = ultimo('spirale');
+    if (t === 'raup' && !(raupAttivo && oggetti.indexOf(raupAttivo) >= 0)) raupAttivo = ultimo('raup');
+    raupDaPosare = t === 'raup';                     // (23/11/2026) ogni tocco dell'icona = una sola conchiglia nuova
+    if (t === 'raup') avviso('Tocca il foglio dove vuoi posare la conchiglia; poi trascinala per ruotarla');
+    if (t === 'fibo' && !(fiboAttivo && oggetti.indexOf(fiboAttivo) >= 0)) fiboAttivo = ultimo('fibo');
+    fiboDaPosare = t === 'fibo';
+    if (t === 'fibo') avviso('Tocca il foglio dove vuoi i primi due quadrati (si agganciano ai quadretti)');
+    aggiornaPannello(); aggiornaStriscia();
+    disegnaSopra();
+  }
+  /* ---------- casella di testo ---------- */
+  var tBox = $('tBox'), tArea = $('tArea'), testoInModifica = null, testoNuovo = null, tStile = { h: 24, b: false, i: false };
+  function stileCorrente() { return testoInModifica || testoNuovo; }
+  function aggiornaCasella() {                      // la casella usa lo stile scelto (tStile) e sta dove sarà il testo
+    var o = stileCorrente(); if (!o) return;
+    var p = aSchermo(o.x, o.y), fs = tStile.h * s, col = testoNuovo ? testoNuovo.c : (testoInModifica.cNuovo || testoInModifica.c);
+    tArea.style.fontSize = fs + 'px'; tArea.style.fontWeight = tStile.b ? 'bold' : 'normal'; tArea.style.fontStyle = tStile.i ? 'italic' : 'normal'; tArea.style.color = col;
+    var bq = riquadroTesto({ h: tStile.h, b: tStile.b, i: tStile.i, txt: tArea.value || ' ' });
+    tArea.style.width = (bq.w * s + fs + 12) + 'px'; tArea.style.height = (bq.h * s + 8) + 'px';
+    tBox.style.left = Math.max(4, p[0] - 6) + 'px'; tBox.style.top = Math.max(4, p[1] - 48) + 'px';
+    $('tAltezza').value = String(tStile.h); $('tB').classList.toggle('on', tStile.b); $('tI').classList.toggle('on', tStile.i);
+  }
+  function apriTesto(o, x, y) {
+    if (o) { testoInModifica = o; testoNuovo = null; tArea.value = o.txt; tStile = { h: o.h, b: o.b, i: o.i }; }
+    else { testoInModifica = null; testoNuovo = { t: 'testo', x: x, y: y, h: tStile.h, b: tStile.b, i: tStile.i, c: colore, txt: '' }; tArea.value = ''; }
+    tBox.style.display = 'flex'; disegna(); aggiornaCasella();
+    var fuoco = function () { tArea.focus(); tArea.setSelectionRange(tArea.value.length, tArea.value.length); };
+    fuoco(); setTimeout(fuoco, 0); setTimeout(fuoco, 120);
+  }
+  function chiudiTesto(conferma) {
+    if (tBox.style.display !== 'flex') return;
+    var vecchio = testoInModifica, nuovo = testoNuovo, txt = tArea.value.replace(/\s+$/, '');
+    tBox.style.display = 'none'; testoInModifica = null; testoNuovo = null; tArea.blur();
+    if (conferma) {
+      if (vecchio) {
+        salvaStato();
+        if (!txt) oggetti = oggetti.filter(function (q) { return q !== vecchio; });
+        else { var n = sostituisci(vecchio); n.txt = txt; n.h = tStile.h; n.b = tStile.b; n.i = tStile.i; n.c = vecchio.cNuovo || vecchio.c; delete n.cNuovo; delete vecchio.cNuovo; controllaPagine(n); }
+      } else if (nuovo && txt) { nuovo.txt = txt; nuovo.h = tStile.h; nuovo.b = tStile.b; nuovo.i = tStile.i; aggiungi(nuovo); }
+    } else if (vecchio) delete vecchio.cNuovo;
+    disegna();
+  }
+  function cambiaStile(fn) { fn(tStile); aggiornaCasella(); tArea.focus(); }
+  tArea.addEventListener('input', aggiornaCasella);
+  tArea.addEventListener('keydown', function (e) {
+    e.stopPropagation();
+    if (e.key === 'Escape') { e.preventDefault(); chiudiTesto(false); }
+  });
+  $('tAltezza').onchange = function () { var v = +this.value; cambiaStile(function (st) { st.h = v; }); };
+  $('tB').onclick = function () { cambiaStile(function (st) { st.b = !st.b; }); };
+  $('tI').onclick = function () { cambiaStile(function (st) { st.i = !st.i; }); };
+  $('tOk').onclick = function () { chiudiTesto(true); };
+  $('tNo').onclick = function () { chiudiTesto(false); };
+  /* ---------- pannello della spirale ---------- */
+  var pS = $('pSpirale'), inModifica = false;
+  function aggiornaPannello() {
+    var sp = (strumento === 'spirale' && spiraleAttiva && oggetti.indexOf(spiraleAttiva) >= 0) ? spiraleAttiva : null;
+    pS.style.display = sp ? 'flex' : 'none';
+    if (!sp) return;
+    var b = Math.log(sp.W) / TP;
+    $('sW').value = sp.W; $('vW').textContent = num(sp.W, 2) + ' ×';
+    $('sG').value = sp.giri; $('vG').textContent = num(sp.giri, sp.giri % 1 ? 2 : 0).replace(/,?0+$/, '') || '0';
+    $('vB').textContent = num(b, 3); $('vA').textContent = num(Math.atan(1 / b) * 180 / Math.PI, 1) + '°';
+    $('sAurea').classList.toggle('on', !!sp.aurea);
+  }
+  function modificaSpirale(fn) {
+    if (!spiraleAttiva) return;
+    if (!inModifica) { salvaStato(); spiraleAttiva = sostituisci(spiraleAttiva); inModifica = true; }
+    fn(spiraleAttiva); aggiornaPannello(); disegna();
+  }
+  $('sW').addEventListener('input', function () { var v = +this.value; modificaSpirale(function (o) { o.W = v; }); });
+  $('sG').addEventListener('input', function () { var v = +this.value; modificaSpirale(function (o) { o.giri = v; }); });
+  ['sW', 'sG'].forEach(function (id) { $(id).addEventListener('change', function () { inModifica = false; }); });
+  $('sAurea').onclick = function () { inModifica = false; modificaSpirale(function (o) { o.aurea = !o.aurea; }); inModifica = false; };
+  $('sVerso').onclick = function () { inModifica = false; modificaSpirale(function (o) { o.verso = -o.verso; }); inModifica = false; };
+  $('sElimina').onclick = function () {
+    if (!spiraleAttiva) return; salvaStato();
+    oggetti = oggetti.filter(function (o) { return o !== spiraleAttiva; }); spiraleAttiva = ultimo('spirale'); aggiornaPannello(); disegna();
+  };
+  /* ---------- griglia polare, Nautilus, Raup ---------- */
+  $('bNautilus').onclick = function () {
+    var c = aMondo(W / 2, H / 2), R0 = Math.min(PW * 0.33, (H / s) * 0.42);
+    var o = { t: 'nautilus', x: c[0] - R0 * 0.08, y: c[1] + R0 * 0.05, R: R0, rot: -0.35, verso: 1 };
+    aggiungi(o); scegli('sel'); selezione = o; disegnaSopra();
+    avviso('Sezione del Nautilus: con "Sposta" la muovi e la ingrandisci dagli angoli');
+  };
+  /* ---------- modello di Raup posato sul foglio ---------- */
+  var ESEMPI_RAUP = [
+    ['Nautilus',   'cefalopode',  { W: 3,    D: 0.05, T: 0,    N: 3 }],
+    ['Ammonite',   'cefalopode',  { W: 1.9,  D: 0.35, T: 0,    N: 6 }],
+    ['Planorbis',  'gasteropode', { W: 1.8,  D: 0.25, T: 0.15, N: 5 }],
+    ['Chiocciola', 'gasteropode', { W: 2,    D: 0.12, T: 1.4,  N: 4.5 }],
+    ['Turritella', 'gasteropode', { W: 1.25, D: 0.05, T: 4.5,  N: 12 }],
+    ['Littorina',  'gasteropode', { W: 3.5,  D: 0,    T: 1.2,  N: 5 }],
+    ['Bivalve',    'una valva',   { W: 1000, D: 0,    T: 0.1,  N: 0.45 }]
+  ];
+  var raupDaPosare = false;                           // diventa vero a ogni tocco dell'icona: il tocco sul foglio posa UNA conchiglia
+  var raupAttivo = null, rStrip = $('rStrip'), rMenu = $('rMenu'), raupModifica = false, raupInAttesa = false;
+  function rendiRaup(o) {
+    orientamento(o);
+    if (window.RaupDisegna) { o.img = window.RaupDisegna(o); return; }
+    o.img = null;
+    if (!raupInAttesa) { raupInAttesa = true; avviso('Il modello 3D arriva dalla rete (Three.js): serve Internet.'); }
+  }
+  window.addEventListener('raup-pronto', function () { oggetti.forEach(function (o) { if (o.t === 'raup' && !o.img) rendiRaup(o); }); disegna(); });
+  function disegnaRaup(ctx, o) {
+    if (o.img) { ctx.drawImage(o.img, o.x, o.y, o.w, o.h); return; }
+    ctx.save(); ctx.strokeStyle = '#b8b0a0'; ctx.setLineDash([8, 6]); ctx.lineWidth = 1.5; ctx.strokeRect(o.x, o.y, o.w, o.h);
+    ctx.fillStyle = '#8a7a5a'; ctx.font = 'italic 22px "EB Garamond", Georgia, serif'; ctx.textAlign = 'center'; ctx.fillText('modello di Raup (serve Internet)', o.x + o.w / 2, o.y + o.h / 2); ctx.restore();
+  }
+  function raupValido() { return strumento === 'raup' && raupAttivo && oggetti.indexOf(raupAttivo) >= 0 ? raupAttivo : null; }
+  function fmtR(x, d) { return x.toFixed(d).replace('.', ','); }
+  function aggiornaStriscia() {
+    aggiornaStrisciaFibo();
+    var o = raupValido();
+    rStrip.style.display = o ? 'flex' : 'none'; if (!o) { rMenu.style.display = 'none'; return; }
+    $('rW').value = Math.log10(o.W); $('rD').value = o.D; $('rT').value = o.T; $('rN').value = o.N;
+    $('rvW').textContent = o.W < 10 ? fmtR(o.W, 2) : String(Math.round(o.W));
+    $('rvD').textContent = fmtR(o.D, 2); $('rvT').textContent = fmtR(o.T, 2); $('rvN').textContent = fmtR(o.N, 1);
+    $('rSezione').classList.toggle('on', !!o.sez); $('rFili').classList.toggle('on', !!o.fili); $('rCresci').classList.toggle('on', !!crescitaRaup);
+    var a = aSchermo(o.x, o.y + o.h), b = aSchermo(o.x + o.w, o.y + o.h), sw = rStrip.offsetWidth || 620, sh = rStrip.offsetHeight || 56;
+    var left = Math.max(8, Math.min(W - sw - 8, (a[0] + b[0]) / 2 - sw / 2)), top = Math.max(8, Math.min(H - sh - 8, a[1] + 8));
+    rStrip.style.left = left + 'px'; rStrip.style.top = top + 'px';
+    if (rMenu.style.display !== 'none') posizionaMenu();
+  }
+  function posizionaMenu() {
+    var r = rStrip.getBoundingClientRect(), ra = area.getBoundingClientRect(), mh = rMenu.offsetHeight || 320;
+    var top = r.bottom - ra.top + 6; if (top + mh > H - 8) top = r.top - ra.top - mh - 6;
+    rMenu.style.left = Math.min(W - 230, r.right - ra.left - 220) + 'px'; rMenu.style.top = Math.max(8, top) + 'px';
+  }
+  function modificaRaup(fn) {
+    var o = raupValido(); if (!o) return;
+    if (!raupModifica) { salvaStato(); raupAttivo = sostituisci(o); raupModifica = true; }
+    fn(raupAttivo); rendiRaup(raupAttivo); disegna();
+  }
+  [['rW', function (o, v) { o.W = Math.pow(10, v); }], ['rD', function (o, v) { o.D = v; }], ['rT', function (o, v) { o.T = v; }], ['rN', function (o, v) { o.N = v; }]].forEach(function (c) {
+    $(c[0]).addEventListener('input', function () { var v = +this.value; modificaRaup(function (o) { c[1](o, v); }); });
+    $(c[0]).addEventListener('change', function () { raupModifica = false; });
+  });
+  ESEMPI_RAUP.forEach(function (e) {
+    var b = document.createElement('button'); b.innerHTML = e[0] + '<span>' + e[1] + '</span>';
+    b.onclick = function () { raupModifica = false; modificaRaup(function (o) { o.W = e[2].W; o.D = e[2].D; o.T = e[2].T; o.N = e[2].N; }); raupModifica = false; rMenu.style.display = 'none'; };
+    rMenu.appendChild(b);
+  });
+  $('rEsempiBtn').onclick = function () { rMenu.style.display = rMenu.style.display === 'flex' ? 'none' : 'flex'; posizionaMenu(); };
+  $('rSezione').onclick = function () { raupModifica = false; modificaRaup(function (o) { o.sez = !o.sez; }); raupModifica = false; };
+  $('rFili').onclick = function () { raupModifica = false; modificaRaup(function (o) { o.fili = !o.fili; }); raupModifica = false; };
+  var crescitaRaup = null;                              // la crescita è solo un'animazione: non entra in Annulla
+  $('rCresci').onclick = function () {
+    var o = raupValido(); if (!o || !window.RaupDisegna) return;
+    var t0 = performance.now(), durata = 2500 + 350 * Math.min(o.N, 10);
+    crescitaRaup = o;
+    (function passo() {
+      if (crescitaRaup !== o || oggetti.indexOf(o) < 0) { delete o.Nvis; return; }
+      var u = Math.min(1, (performance.now() - t0) / durata);
+      o.Nvis = Math.max(0.05, o.N * (1 - Math.pow(1 - u, 2)));
+      rendiRaup(o); disegna();
+      if (u < 1) requestAnimationFrame(passo); else { delete o.Nvis; crescitaRaup = null; rendiRaup(o); disegna(); }
+    })();
+  };
+  /* quaternioni [x, y, z, w] per l'orientamento della conchiglia (la telecamera resta ferma davanti) */
+  function qMul(a, b) { return [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0],
+                                a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]]; }
+  function qAsse(x, y, z, ang) { var sn = Math.sin(ang / 2); return [x * sn, y * sn, z * sn, Math.cos(ang / 2)]; }
+  function qNorm(q) { var l = Math.hypot(q[0], q[1], q[2], q[3]) || 1; return [q[0] / l, q[1] / l, q[2] / l, q[3] / l]; }
+  /** come guardarla un po' di lato (az) e un po' dall'alto (el) */
+  function orientamentoIniziale(az, el) { return qNorm(qMul(qAsse(1, 0, 0, el), qAsse(0, 1, 0, -az))); }
+  function orientamento(o) { if (!o.q) o.q = orientamentoIniziale(o.az != null ? o.az : 0.7, o.el != null ? o.el : 0.35); return o.q; }
+  /* ---------- (25/11/2026) Fibonacci: quadrati 1, 1, 2, 3, 5, 8… costruiti sui quadretti della lavagna ----------
+     Oggetto { t:'fibo', x, y (angolo del primo quadratino, su un incrocio dei quadretti), u (1 = 5 mm, 2 = 1 cm),
+     n (quanti quadrati), giro (0-3, quarti di giro), verso (1 / -1), arco, c }. Unità fissa: 1 quadretto (5 mm).
+     Verso 1 = la spirale cresce in senso orario, come la Spirale logaritmica e la Sezione del Nautilus. */
+  var FIB = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+  function fiboQuadrati(o, n) {                        // [x, y, lato] in unità, prima della rotazione
+    n = n || o.n;
+    var x0 = 0, y0 = 0, x1 = 1, y1 = 1, q = [[0, 0, 1]], dir = 'RDLU';
+    for (var i = 1; i < n; i++) {
+      var s = FIB[i], d = dir[(i - 1) % 4];
+      if (d === 'R') { q.push([x1, y0, s]); x1 += s; }
+      else if (d === 'D') { q.push([x0, y1, s]); y1 += s; }
+      else if (d === 'L') { q.push([x0 - s, y0, s]); x0 -= s; }
+      else { q.push([x0, y0 - s, s]); y0 -= s; }
+    }
+    return q;
+  }
+  function fiboMondo(o, px, py) {                      // punto in unità -> foglio (rotazione a quarti di giro, specchio per il verso)
+    var x = px * o.verso, y = py, k = ((o.giro % 4) + 4) % 4, t;
+    for (var i = 0; i < k; i++) { t = x; x = -y; y = t; }
+    var U = o.u * QUAD; return [o.x + x * U, o.y + y * U];
+  }
+  function fiboArchi(o, n) {                           // quarti di cerchio continui, convessi verso l'esterno: [centro, inizio, fine, lato]
+    var q = fiboQuadrati(o, n), prev = null, P = [0.8, 1.1], out = [];
+    q.forEach(function (sq) {
+      var x = sq[0], y = sq[1], s = sq[2], best = null;
+      [[x, y], [x + s, y], [x, y + s], [x + s, y + s]].forEach(function (c) {
+        var e1 = [c[0] + (c[0] === x ? s : -s), c[1]], e2 = [c[0], c[1] + (c[1] === y ? s : -s)];
+        var ug = function (a, b) { return a && b && a[0] === b[0] && a[1] === b[1]; };
+        if (prev && !ug(prev, e1) && !ug(prev, e2)) return;
+        var a = (!prev || ug(prev, e1)) ? e1 : e2, b = a === e1 ? e2 : e1, dd = Math.pow(c[0] - P[0], 2) + Math.pow(c[1] - P[1], 2);
+        if (!best || dd < best[0]) best = [dd, c, a, b];
+      });
+      out.push([best[1], best[2], best[3], s]); prev = best[3];
+    });
+    return out;
+  }
+  function riquadroFibo(o, n) {
+    var a = 1e9, b = 1e9, c = -1e9, d = -1e9;
+    fiboQuadrati(o, n).forEach(function (sq) {
+      [[sq[0], sq[1]], [sq[0] + sq[2], sq[1] + sq[2]]].forEach(function (p) { var m = fiboMondo(o, p[0], p[1]); a = Math.min(a, m[0]); b = Math.min(b, m[1]); c = Math.max(c, m[0]); d = Math.max(d, m[1]); });
+    });
+    return { x: a, y: b, w: c - a, h: d - b };
+  }
+  function paginaDi(y) { return Math.min(pagine - 1, Math.max(0, Math.floor(y / (PH + GAP)))); }
+  function fiboStaNelFoglio(o, n) {                    // tutta dentro il foglio dove sta il primo quadratino
+    var r = riquadroFibo(o, n), t = topPagina(paginaDi(o.y)), e = 0.5;
+    return r.x >= -e && r.x + r.w <= PW + e && r.y >= t - e && r.y + r.h <= t + PH + e;
+  }
+  /** sposta la costruzione (a scatti di un quadretto) quanto basta perché stia tutta nel suo foglio */
+  function rientraNelFoglio(o) {
+    var r = riquadroFibo(o), t = topPagina(paginaDi(o.y)), dx = 0, dy = 0;
+    if (r.x < 0) dx = Math.ceil(-r.x / QUAD - 1e-6) * QUAD;
+    else if (r.x + r.w > PW) dx = -Math.ceil((r.x + r.w - PW) / QUAD - 1e-6) * QUAD;
+    if (r.y < t) dy = Math.ceil((t - r.y) / QUAD - 1e-6) * QUAD;
+    else if (r.y + r.h > t + PH) dy = -Math.ceil((r.y + r.h - t - PH) / QUAD - 1e-6) * QUAD;
+    o.x += dx; o.y += dy;
+  }
+  function agganciaGriglia(x, y) {                     // incrocio dei quadretti più vicino
+    var t = topPagina(paginaDi(y));
+    return [Math.max(0, Math.min(PW, Math.round(x / QUAD) * QUAD)), t + Math.max(0, Math.min(PH, Math.round((y - t) / QUAD) * QUAD))];
+  }
+  function disegnaFibo(ctx, o) {
+    var U = o.u * QUAD, q = fiboQuadrati(o), k;
+    var rosso = '#c62828', colArco = o.c === rosso ? '#1b1b1b' : rosso;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = o.c; ctx.lineWidth = 2.2;
+    q.forEach(function (sq) {
+      var p = [fiboMondo(o, sq[0], sq[1]), fiboMondo(o, sq[0] + sq[2], sq[1]), fiboMondo(o, sq[0] + sq[2], sq[1] + sq[2]), fiboMondo(o, sq[0], sq[1] + sq[2])];
+      ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (k = 1; k < 4; k++) ctx.lineTo(p[k][0], p[k][1]); ctx.closePath(); ctx.stroke();
+    });
+    if (o.arco) {
+      ctx.strokeStyle = colArco; ctx.lineWidth = 3.4; ctx.beginPath();
+      fiboArchi(o).forEach(function (a, i) {
+        var c = fiboMondo(o, a[0][0], a[0][1]), s = fiboMondo(o, a[1][0], a[1][1]), e = fiboMondo(o, a[2][0], a[2][1]);
+        var r = a[3] * U, a1 = Math.atan2(s[1] - c[1], s[0] - c[0]), a2 = Math.atan2(e[1] - c[1], e[0] - c[0]), d = a2 - a1;
+        while (d > Math.PI) d -= TP; while (d < -Math.PI) d += TP;
+        if (!i) ctx.moveTo(s[0], s[1]);
+        ctx.arc(c[0], c[1], r, a1, a1 + d, d < 0);
+      });
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  var fiboDaPosare = false, fiboAttivo = null, fStrip = $('fStrip');
+  function fiboValido() { return strumento === 'fibo' && fiboAttivo && oggetti.indexOf(fiboAttivo) >= 0 ? fiboAttivo : null; }
+  function aggiornaStrisciaFibo() {
+    var o = fiboValido();
+    fStrip.style.display = o ? 'flex' : 'none'; if (!o) return;
+    $('fArco').classList.toggle('on', !!o.arco);
+    var r = riquadroFibo(o), a = aSchermo(r.x, r.y + r.h), b = aSchermo(r.x + r.w, r.y + r.h), sw = fStrip.offsetWidth || 900, sh = fStrip.offsetHeight || 54;
+    var top = a[1] + 10;
+    fStrip.style.left = Math.max(8, Math.min(W - sw - 8, (a[0] + b[0]) / 2 - sw / 2)) + 'px';
+    fStrip.style.top = Math.max(8, Math.min(H - sh - 8, top)) + 'px';
+  }
+  function modificaFibo(fn) {                         // ogni pulsante = un passo di Annulla
+    var o = fiboValido(); if (!o) return;
+    var prova = {}; for (var k in o) prova[k] = o[k];
+    if (fn(prova) === false) return;
+    if (!fiboStaNelFoglio(prova)) rientraNelFoglio(prova);   // (25/11/2026) prima prova a spostarla dentro il foglio
+    if (!fiboStaNelFoglio(prova)) { avviso('Così non sta più nel foglio'); return; }
+    salvaStato(); fiboAttivo = sostituisci(o); for (k in prova) fiboAttivo[k] = prova[k];
+    controllaPagine(fiboAttivo); disegna();
+  }
+  $('fPiu').onclick = function () { modificaFibo(function (o) { if (o.n >= FIB.length) return false; o.n++; }); };
+  $('fMeno').onclick = function () { modificaFibo(function (o) { if (o.n <= 2) return false; o.n--; }); };
+  $('fArco').onclick = function () { modificaFibo(function (o) { o.arco = !o.arco; }); };
+  $('fVerso').onclick = function () { modificaFibo(function (o) { o.verso = -o.verso; }); };
+  $('fGira').onclick = function () { modificaFibo(function (o) { o.giro = (o.giro + 1) % 4; }); };
+  /** (23/11/2026) cursore dello strumento Raup: rotazione 3D sopra una conchiglia, mirino se se ne può posare una, freccia altrove */
+  function cursoreRaup(m) {
+    var sopraConchiglia = oggetti.some(function (o) { return o.t === 'raup' && m[0] > o.x && m[0] < o.x + o.w && m[1] > o.y && m[1] < o.y + o.h; });
+    if (sopra.className.indexOf('raup') < 0) sopra.className = 'raup';   // mai senza cursore con lo strumento Raup
+    sopra.classList.toggle('ruota', sopraConchiglia);
+    sopra.classList.toggle('posa', !sopraConchiglia && raupDaPosare);
+  }
+  var raupRaf = 0;
+  function ruotaRaup() { if (raupRaf) return; raupRaf = requestAnimationFrame(function () { raupRaf = 0; if (raupAttivo) { rendiRaup(raupAttivo); disegna(); } }); }
+  // (23/11/2026) un tocco accende lo strumento, un secondo tocco sullo stesso lo spegne: lavagna "neutra"
+  document.querySelectorAll('[data-tool]').forEach(function (b) { b.onclick = function () { scegli(strumento === b.dataset.tool ? '' : b.dataset.tool); }; });
+  document.querySelectorAll('.colore').forEach(function (b) {
+    b.onclick = function () {
+      colore = b.dataset.col;
+      document.querySelectorAll('.colore').forEach(function (x) { x.classList.toggle('on', x === b); });
+      if (tBox.style.display === 'flex') {                // colore del testo aperto
+        if (testoNuovo) testoNuovo.c = colore; if (testoInModifica) testoInModifica.cNuovo = colore;
+        tArea.style.color = colore; tArea.focus(); return;
+      }
+      if (strumento === 'gomma' || strumento === 'mano' || strumento === 'sel') scegli('penna');   // in lavagna neutra il colore si sceglie e basta
+    };
+  });
+  $('bQuadretti').onclick = function () { quadretti = !quadretti; this.classList.toggle('acceso', quadretti); disegna(); };
+  $('bAnnulla').onclick = function () { chiudiTesto(true); annulla(); }; $('bRipeti').onclick = function () { chiudiTesto(true); ripeti(); };
+  $('bPagina').onclick = function () { salvaStato(); pagine++; s = sAdatta; ox = 20; oy = 16 - topPagina(pagine - 1) * s; disegna(); };
+  var pulisciTimer = null;
+  $('bPulisci').onclick = function () {
+    var b = this;
+    if (!b.classList.contains('rosso')) { b.classList.add('rosso'); b.querySelector('span').textContent = 'Sicuro?'; pulisciTimer = setTimeout(function () { b.classList.remove('rosso'); b.querySelector('span').textContent = 'Pulisci'; }, 3000); return; }
+    clearTimeout(pulisciTimer); b.classList.remove('rosso'); b.querySelector('span').textContent = 'Pulisci';
+    salvaStato(); oggetti = []; pagine = 1; selezione = null; s = sAdatta; ox = 20; oy = 16; disegna();
+  };
+  // pagina statica: se per caso è dentro un riquadro e lo schermo intero è negato, si apre in una scheda tutta sua
+  function apriInScheda() { window.open(location.href, '_blank', 'noopener'); }
+  $('bSchermo').onclick = function () {
+    if (document.fullscreenElement) { document.exitFullscreen(); return; }
+    if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) { apriInScheda(); return; }
+    document.documentElement.requestFullscreen().catch(apriInScheda);
+  };
+  /* (25/11/2026) avvio a schermo intero: il primo tocco lo chiede (il browser non lo permette senza un tocco) */
+  function chiediPieno() { if (document.fullscreenElement || !document.documentElement.requestFullscreen) return; document.documentElement.requestFullscreen().catch(function () {}); }
+  $('avvioPieno').onclick = function () { $('avvio').style.display = 'none'; if (document.fullscreenEnabled === false) { apriInScheda(); return; } chiediPieno(); };
+  $('avvioFinestra').onclick = function () { $('avvio').style.display = 'none'; };
+  /* la finestra dei file fa uscire Chrome dallo schermo intero: al primo tocco dopo l'immagine ci si rientra da soli */
+  var rientraPieno = false;
+  $('bImmagine').addEventListener('click', function () { rientraPieno = !!document.fullscreenElement; });
+  document.addEventListener('pointerdown', function () { if (rientraPieno && !document.fullscreenElement) chiediPieno(); rientraPieno = false; }, true);
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) ripeti(); else annulla(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); ripeti(); }
+  });
+  function avviso(t) { var a = $('avviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(avviso.t); avviso.t = setTimeout(function () { a.style.display = 'none'; }, 3500); }
+
+  /* ---------- PDF: una pagina A4 per foglio ---------- */
+  $('bPdf').onclick = function () {
+    chiudiTesto(true);
+    if (!window.jspdf) { avviso('Per il PDF serve la connessione a Internet (libreria jsPDF).'); return; }
+    var pdf = new window.jspdf.jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    var PX = 1240, k = PX / PW, c = document.createElement('canvas'); c.width = PX; c.height = Math.round(PH * k);
+    var x = c.getContext('2d');
+    for (var i = 0; i < pagine; i++) {
+      x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height);
+      x.setTransform(k, 0, 0, k, 0, -topPagina(i) * k);
+      disegnaFogli(x, quadretti);
+      oggetti.forEach(function (o) { disegnaOggetto(x, o); });
+      if (i) pdf.addPage('a4', 'p');
+      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+    }
+    var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; };
+    pdf.save('Lavagna_' + d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()) + '.pdf');
+  };
+
+  window.addEventListener('resize', dimensiona);
+  dimensiona();
+  window.__lavagna = { stato: function () { return { oggetti: oggetti.map(function (o) { return o.t + (o.txt ? ':' + o.txt.replace(/\n/g, '|') : ''); }), pagine: pagine, s: s, strumento: strumento, storia: storia.length, rifare: rifare.length, box: tBox.style.display }; } };
+})();
+</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+/* ---------- Modello di Raup (1966): una conchiglia con quattro numeri, disegnata sul foglio ----------
+   W = allargamento del giro (a ogni giro la curva generatrice si ingrandisce di W volte)
+   D = distanza dall'asse (bordo interno / bordo esterno della curva generatrice)
+   T = salita lungo l'asse (spostamento lungo l'asse rispetto alla distanza dall'asse)
+   N = numero di giri. La curva generatrice (l'apertura) è un'ellisse fissa: per questo Conus e Cymbiola,
+   che hanno un'apertura stretta e lunga, non vengono (servirebbe il quinto parametro di Raup, S = forma).
+   Il modello è reso con Three.js su sfondo trasparente e posato sul foglio come un'immagine. */
+import * as THREE from 'three';
+const TP = Math.PI * 2, EX = 1, EY = 1.15, LATO = 900;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(LATO, LATO, false); renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
+const scena = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+scena.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 1.25));
+const luce = new THREE.DirectionalLight(0xffffff, 1.5); scena.add(luce);
+const materiale = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0, side: THREE.DoubleSide });
+const perno = new THREE.Group(); scena.add(perno);          // (23/11/2026) la conchiglia ruota sul perno, la telecamera sta ferma
+const gruppo = new THREE.Group(); perno.add(gruppo);
+let mesh = null, fili = null, chiave = '', chiaveVista = '', sfera = null;
+const taglio = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+function geometria(p, fino) {                            // giri da 0 (apice) a "fino" (p.N = apertura)
+  const rc = (1 + p.D) / 2, rg = (1 - p.D) / 2, N = p.N, A = Math.max(0.02, fino);
+  const nT = Math.max(24, Math.min(1500, Math.round(A * 80))), nF = 40;
+  const pos = new Float32Array((nT + 1) * (nF + 1) * 3), col = new Float32Array(pos.length), idx = [];
+  for (let i = 0; i <= nT; i++) {
+    const g = A * i / nT, th = (g - N) * TP, sc = Math.pow(p.W, g - N);
+    const linea = ((g * 18) % 1) < 0.14 ? 0.9 : 1;     // linee di crescita, leggere
+    for (let j = 0; j <= nF; j++) {
+      const f = j / nF * TP, R = sc * (rc + rg * EX * Math.cos(f)), y = -sc * (p.T * rc + rg * EY * Math.sin(f));
+      const k = (i * (nF + 1) + j) * 3;
+      pos[k] = R * Math.cos(th); pos[k + 1] = y; pos[k + 2] = R * Math.sin(th);
+      col[k] = 0.97 * linea; col[k + 1] = 0.95 * linea; col[k + 2] = 0.91 * linea;
+    }
+  }
+  for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) { const q = i * (nF + 1) + j, r = q + nF + 1; idx.push(q, r, q + 1, r, r + 1, q + 1); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.setIndex(idx); geo.computeVertexNormals(); geo.computeBoundingSphere(); return geo;
+}
+function costruisciFili(p, fino) {                      // asse di accrescimento (azzurro), apertura (oro), asse di avvolgimento (grigio)
+  const rc = (1 + p.D) / 2, rg = (1 - p.D) / 2, N = p.N, A = Math.max(0.02, fino), v = [], w = [];
+  const scA = Math.pow(p.W, A - N), thA = (A - N) * TP;
+  for (let j = 0; j <= 64; j++) { const f = j / 64 * TP, R = scA * (rc + rg * EX * Math.cos(f)); v.push(R * Math.cos(thA), -scA * (p.T * rc + rg * EY * Math.sin(f)), R * Math.sin(thA)); }
+  const n = Math.min(1500, Math.round(A * 80));
+  for (let i = 0; i <= n; i++) { const g = A * i / n, th = (g - N) * TP, sc = Math.pow(p.W, g - N); w.push(sc * rc * Math.cos(th), -sc * p.T * rc, sc * rc * Math.sin(th)); }
+  const gr = new THREE.Group();
+  const linea = (pts, colore) => {                      // fili come tubicini sottili (le linee di WebGL sono larghe 1 pixel)
+    const v3 = []; for (let i = 0; i < pts.length; i += 3) v3.push(new THREE.Vector3(pts[i], pts[i + 1], pts[i + 2]));
+    const curva = new THREE.CatmullRomCurve3(v3), r = 0.012 * Math.max(sfera.radius, 1e-6);
+    gr.add(new THREE.Mesh(new THREE.TubeGeometry(curva, Math.min(1500, Math.max(8, v3.length * 2)), r, 6, false), new THREE.MeshBasicMaterial({ color: colore, depthTest: false })));
+  };
+  linea(w, 0x2f78c4); linea(v, 0xb8862b);
+  const yb = -Math.pow(p.W, 0) * (p.T * rc) - rg * EY * 1.2, yt = -Math.pow(p.W, -N) * p.T * rc + rg * EY * 1.2;
+  linea([0, yb, 0, 0, yt, 0], 0x8a8478);
+  gr.renderOrder = 2; return gr;
+}
+window.RaupDisegna = (o) => {
+  const k = [o.W, o.D, o.T, o.N].join('|'), fino = o.Nvis != null ? o.Nvis : o.N, kv = k + '|' + fino + '|' + (o.fili ? 1 : 0);
+  if (k !== chiave) { const full = geometria(o, o.N); sfera = full.boundingSphere.clone(); full.dispose(); chiave = k; chiaveVista = ''; }
+  if (kv !== chiaveVista) {
+    if (mesh) { gruppo.remove(mesh); mesh.geometry.dispose(); mesh = null; }
+    if (fili) { gruppo.remove(fili); fili.traverse((x) => x.geometry && x.geometry.dispose()); fili = null; }
+    mesh = new THREE.Mesh(geometria(o, fino), materiale);
+    const sc = 1 / Math.max(sfera.radius, 1e-6);           // stessa scala anche mentre cresce
+    gruppo.scale.setScalar(sc); gruppo.position.copy(sfera.center).multiplyScalar(-sc);
+    gruppo.add(mesh);
+    if (o.fili) { fili = costruisciFili(o, fino); gruppo.add(fili); }
+    chiaveVista = kv;
+  }
+  const d = 1 / Math.sin(THREE.MathUtils.degToRad(15)) * 1.02;    // la sfera di raggio 1 riempie il riquadro
+  camera.position.set(0, 0, d); camera.lookAt(0, 0, 0);
+  luce.position.set(-2, 4, d + 1);
+  const q = o.q || [0, 0, 0, 1];
+  perno.quaternion.set(q[0], q[1], q[2], q[3]); perno.updateMatrixWorld(true);
+  if (o.sez) {                                            // taglio sul piano dell'asse, togliendo la metà verso chi guarda
+    const asseDir = new THREE.Vector3(0, 1, 0).applyQuaternion(perno.quaternion);
+    const asseP = gruppo.position.clone().applyQuaternion(perno.quaternion);
+    const verso = new THREE.Vector3(0, 0, 1), n = verso.clone().sub(asseDir.clone().multiplyScalar(verso.dot(asseDir)));
+    if (n.lengthSq() < 1e-6) n.copy(new THREE.Vector3(1, 0, 0).cross(asseDir));
+    n.normalize();
+    taglio.normal.copy(n).negate(); taglio.constant = n.dot(asseP);
+    materiale.clippingPlanes = [taglio];
+  } else materiale.clippingPlanes = [];
+  renderer.render(scena, camera);
+  const c = document.createElement('canvas'); c.width = LATO; c.height = LATO;
+  c.getContext('2d').drawImage(renderer.domElement, 0, 0);
+  return c;
+};
+window.dispatchEvent(new Event('raup-pronto'));
+</script>
+</body>
+</html>
