@@ -249,8 +249,8 @@
 <input type="file" id="fileImg" accept="image/*" style="display:none">
 <div id="avvio">
   <div class="box">
-    <h2>Lavagna</h2>
-    <p>Marine Inception · Collezione Marco Vedovato</p>
+    <h2>Lavagna Malacologica</h2>
+    <p>Collezione Marco Vedovato</p>
     <button id="avvioPieno">⛶ Apri a schermo intero</button>
     <button id="avvioFinestra" class="piano">continua nella finestra</button>
   </div>
@@ -321,30 +321,34 @@
   function fineSpirale(o) { return [o.x + o.R * Math.cos(o.rot), o.y + o.R * Math.sin(o.rot)]; }
   /** sezione schematica di Nautilus: spirale logaritmica con W = 3 per giro (polo in x,y; apertura a raggio R in direzione rot) */
   var W_NAUT = 3, GIRI_NAUT = 2.75;
+  // (26/11/2026, disegno di Marco) il giro esterno continua oltre l'orizzontale fino al labbro (F_LABBRO), l'apertura
+  // torna al giro precedente (F_UMB); la camera d'abitazione è un terzo di giro: l'ultimo setto sta in alto
+  var F_LABBRO = 0.40, F_UMB = 0.62, F_SETTO = F_LABBRO - TP / 3;
   function rNaut(o, f) { return o.R * Math.pow(W_NAUT, f / TP); }
   function ptNaut(o, f, r) { var a = o.rot + f * o.verso; return [o.x + r * Math.cos(a), o.y + r * Math.sin(a)]; }
   function disegnaNautilus(ctx, o) {
     var n = 420, i, f, q;
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.beginPath();                                                 // il guscio: un giro della parete esterna + l'apertura
-    for (i = 0; i <= n; i++) { f = -TP * i / n; q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    var fA = F_UMB - TP, nA = Math.round(n * (F_LABBRO - fA) / TP);
+    ctx.beginPath();                                                 // il guscio: dal labbro indietro di quasi un giro, fino al punto dell'apertura sul giro precedente
+    for (i = 0; i <= nA; i++) { f = F_LABBRO - (F_LABBRO - fA) * i / nA; q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
     ctx.closePath(); ctx.fillStyle = '#f3ede2'; ctx.fill();
     ctx.strokeStyle = '#a9a59e'; ctx.lineWidth = 1.2; ctx.beginPath();  // spessore del guscio
-    for (i = 0; i <= n * 2; i++) { f = -GIRI_NAUT * TP * i / (n * 2); q = ptNaut(o, f, rNaut(o, f) * 0.955); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    for (i = 0; i <= n * 2; i++) { f = F_LABBRO - (F_LABBRO + GIRI_NAUT * TP) * i / (n * 2); q = ptNaut(o, f, rNaut(o, f) * 0.955); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
     ctx.stroke();
     ctx.strokeStyle = '#8d8a84'; ctx.lineWidth = 2.6; ctx.beginPath(); // parete esterna di tutti i giri
-    for (i = 0; i <= n * 2; i++) { f = -GIRI_NAUT * TP * i / (n * 2); q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
-    var a1 = ptNaut(o, 0, rNaut(o, 0)), a2 = ptNaut(o, 0, rNaut(o, -TP));
+    for (i = 0; i <= n * 2; i++) { f = F_LABBRO - (F_LABBRO + GIRI_NAUT * TP) * i / (n * 2); q = ptNaut(o, f, rNaut(o, f)); if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }
+    var a1 = ptNaut(o, F_LABBRO, rNaut(o, F_LABBRO)), a2 = ptNaut(o, F_UMB, rNaut(o, F_UMB - TP));   // l'apertura
     ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.stroke();
     ctx.strokeStyle = '#9a968f'; ctx.lineWidth = 1.6;                  // setti (le pareti delle camere)
     var fMin = -(GIRI_NAUT - 1) * TP;
-    for (f = -2.45; f > fMin; f -= TP / 15) {
+    for (f = F_SETTO; f > fMin; f -= TP / 15) {
       var p1 = ptNaut(o, f, rNaut(o, f) * 0.955), p0 = ptNaut(o, f, rNaut(o, f - TP));
       var cm = ptNaut(o, f - 0.32, (rNaut(o, f) + rNaut(o, f - TP)) / 2);
       ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.quadraticCurveTo(cm[0], cm[1], p0[0], p0[1]); ctx.stroke();
     }
     ctx.setLineDash([3, 5]); ctx.lineWidth = 1.4; ctx.beginPath();   // sifone
-    for (i = 0, f = -2.3; f > fMin; f -= 0.04, i++) {
+    for (i = 0, f = F_SETTO + 0.15; f > fMin; f -= 0.04, i++) {
       var rs = rNaut(o, f - TP) + 0.3 * (rNaut(o, f) - rNaut(o, f - TP)); q = ptNaut(o, f, rs);
       if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
     }
@@ -352,7 +356,7 @@
   }
   function riquadroNautilus(o) {
     var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    for (var i = 0; i <= 120; i++) { var f = -TP * i / 120, q = ptNaut(o, f, rNaut(o, f)); x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
+    for (var i = 0; i <= 120; i++) { var f = F_LABBRO - TP * i / 120, q = ptNaut(o, f, rNaut(o, f)); x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
     return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   }
   /** calibro: segmento con le due ganasce, misura in mm e rapporto con la misura precedente */
@@ -900,7 +904,7 @@
   /* ---------- griglia polare, Nautilus, Raup ---------- */
   $('bNautilus').onclick = function () {
     var c = aMondo(W / 2, H / 2), R0 = Math.min(PW * 0.33, (H / s) * 0.42);
-    var o = { t: 'nautilus', x: c[0] - R0 * 0.08, y: c[1] + R0 * 0.05, R: R0, rot: -0.35, verso: 1 };
+    var o = { t: 'nautilus', x: c[0] - R0 * 0.08, y: c[1] + R0 * 0.05, R: R0, rot: 0, verso: 1 };
     aggiungi(o); scegli('sel'); selezione = o; disegnaSopra();
     avviso('Sezione del Nautilus: con "Sposta" la muovi e la ingrandisci dagli angoli');
   };
@@ -1128,15 +1132,19 @@
     salvaStato(); oggetti = []; pagine = 1; selezione = null; s = sAdatta; ox = 20; oy = 16; disegna();
   };
   // pagina statica: se per caso è dentro un riquadro e lo schermo intero è negato, si apre in una scheda tutta sua
-  function apriInScheda() { window.open(location.href, '_blank', 'noopener'); }
+  // (25/11/2026) indirizzo vero della lavagna: anche se il codice è incollato in un riquadro di Google Sites
+  // (che ha un indirizzo suo, …googleusercontent.com…), la scheda nuova apre sempre la pagina su GitHub
+  var URL_LAVAGNA = 'https://vedovatomarco-eng.github.io/lavagna/LavagnaMalacologica.html';
+  function apriInScheda() { window.open(/\.github\.io$/.test(location.hostname) && window.self === window.top ? location.href : URL_LAVAGNA, '_blank', 'noopener'); }
+  var inRiquadro = window.self !== window.top;   // dentro Google Sites: lo schermo intero di solito è negato
   $('bSchermo').onclick = function () {
     if (document.fullscreenElement) { document.exitFullscreen(); return; }
-    if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) { apriInScheda(); return; }
+    if (inRiquadro || !document.fullscreenEnabled || !document.documentElement.requestFullscreen) { apriInScheda(); return; }
     document.documentElement.requestFullscreen().catch(apriInScheda);
   };
   /* (25/11/2026) avvio a schermo intero: il primo tocco lo chiede (il browser non lo permette senza un tocco) */
   function chiediPieno() { if (document.fullscreenElement || !document.documentElement.requestFullscreen) return; document.documentElement.requestFullscreen().catch(function () {}); }
-  $('avvioPieno').onclick = function () { $('avvio').style.display = 'none'; if (document.fullscreenEnabled === false) { apriInScheda(); return; } chiediPieno(); };
+  $('avvioPieno').onclick = function () { $('avvio').style.display = 'none'; if (inRiquadro || document.fullscreenEnabled === false) { apriInScheda(); return; } chiediPieno(); };
   $('avvioFinestra').onclick = function () { $('avvio').style.display = 'none'; };
   /* la finestra dei file fa uscire Chrome dallo schermo intero: al primo tocco dopo l'immagine ci si rientra da soli */
   var rientraPieno = false;
